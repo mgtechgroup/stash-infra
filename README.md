@@ -1,453 +1,514 @@
-# 🚀 UNIFIED DOCKER STACK - START HERE
+# Stash - Infrastructure & Services Stack
 
-**Complete Media & Scraping Ecosystem** | Production-Grade | 12 Services | 50+ Integrated Tools
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![Docker](https://img.shields.io/badge/Docker-Ready-blue.svg)](docker-compose.yml)
+[![Nginx](https://img.shields.io/badge/Nginx-Proxy-orange.svg)]()
+[![Security](https://img.shields.io/badge/Security-Hardened-green.svg)]()
 
----
+## 🏗️ Overview
 
-## 📍 QUICK NAVIGATION
+**Stash** is the infrastructure backbone powering the BLBGenSix AI ecosystem. It provides a comprehensive suite of containerized services including reverse proxy, caching, message queues, databases, monitoring, and security services.
 
-### 🎯 First Time? Start Here
-1. **[DEPLOYMENT_GUIDE.md](DEPLOYMENT_GUIDE.md)** ← **START HERE** (Quick start, endpoints, troubleshooting)
-2. [COMPLETE_ECOSYSTEM_SUMMARY.md](COMPLETE_ECOSYSTEM_SUMMARY.md) (Full architecture overview)
-
-### 🏗️ Infrastructure & Configuration
-- [docker-compose.unified.yml](docker-compose.unified.yml) — All 12 services, volumes, networks
-- [nginx/nginx.conf](nginx/nginx.conf) — Reverse proxy, SSL/TLS, rate limiting, routing
-- [security-hardening.ps1](security-hardening.ps1) — Automated Windows security setup
-
-### 💻 Service-Specific Guides
-- [OPENLIBERTY_GUIDE.md](OPENLIBERTY_GUIDE.md) — Java app development, REST APIs, database access
-- [IMDB_SCRAPER_API.md](IMDB_SCRAPER_API.md) — Movie scraper, REST endpoints, integration examples
-- [STASH_PLUGINS_GUIDE.md](STASH_PLUGINS_GUIDE.md) — Custom plugin development, 5 ready-made plugins
-
-### 📊 Documentation & Reference
-- [SKILLS_AND_PLUGINS_INVENTORY.md](SKILLS_AND_PLUGINS_INVENTORY.md) — Complete tool map (50+ services)
-- [SECURITY_AUDIT_REPORT.txt](SECURITY_AUDIT_REPORT.txt) — Security features, vulnerabilities, fixes
-- [OPENLIBERTY_INTEGRATION.txt](OPENLIBERTY_INTEGRATION.txt) — Open Liberty setup summary
+Designed for high availability and security, Stash ensures reliable operation of all dependent applications with enterprise-grade hardening and monitoring.
 
 ---
 
-## 🚀 DEPLOY IN 3 COMMANDS
+## 📦 Services List & Descriptions
+
+### Core Infrastructure
+
+| Service | Image | Description | Port |
+|---------|-------|-------------|------|
+| **Nginx Proxy** | `nginx:alpine` | Reverse proxy, SSL termination, load balancer | 80/443 |
+| **PostgreSQL** | `postgres:16-alpine` | Primary relational database | 5432 |
+| **Redis** | `redis:7-alpine` | Cache, sessions, pub/sub, queues | 6379 |
+| **Redis Commander** | `rediscommander/redis-commander` | Redis web management UI | 8081 |
+
+### Message Queues & Workers
+
+| Service | Image | Description | Port |
+|---------|-------|-------------|------|
+| **RabbitMQ** | `rabbitmq:3-management` | Message broker with management UI | 5672/15672 |
+| **Worker** | `custom` | Laravel queue worker container | - |
+
+### Search & Analytics
+
+| Service | Image | Description | Port |
+|---------|-------|-------------|------|
+| **Meilisearch** | `getmeili/meilisearch:v1.6` | Fast, relevant search engine | 7700 |
+| **Elasticsearch** | `elasticsearch:8.x` | Distributed search and analytics | 9200/9300 |
+
+### Monitoring & Observability
+
+| Service | Image | Description | Port |
+|---------|-------|-------------|------|
+| **Prometheus** | `prom/prometheus:latest` | Metrics collection and alerting | 9090 |
+| **Grafana** | `grafana/grafana:latest` | Metrics visualization and dashboards | 3000 |
+| **Node Exporter** | `prom/node-exporter:latest` | System metrics exporter | 9100 |
+| **cAdvisor** | `gcr.io/cadvisor/cadvisor` | Container metrics exporter | 8080 |
+
+### Logging
+
+| Service | Image | Description | Port |
+|---------|-------|-------------|------|
+| **Loki** | `grafana/loki:latest` | Log aggregation system | 3100 |
+| **Promtail** | `grafana/promtail:latest` | Log shipping agent | - |
+
+### Security
+
+| Service | Image | Description | Port |
+|---------|-------|-------------|------|
+| **Vault** | `hashicorp/vault:latest` | Secrets management | 8200 |
+| **Fail2ban** | `linuxserver/fail2ban:latest` | Intrusion prevention | - |
+| **ClamAV** | `clamav/clamav:latest` | Antivirus scanning | 3310 |
+
+### Storage & Backups
+
+| Service | Image | Description | Port |
+|---------|-------|-------------|------|
+| **MinIO** | `minio/minio:latest` | S3-compatible object storage | 9000/9001 |
+| **Backup** | `custom` | Automated backup service | - |
+
+---
+
+## 🐳 Docker Compose Setup
+
+### Prerequisites
+- Docker 24.x+
+- Docker Compose 2.x+
+- 8GB+ RAM recommended
+- 50GB+ free disk space
+
+### Quick Start
 
 ```bash
-cd stash/
+# Clone the repository
+git clone https://github.com/mgtechgroup/stash.git
+cd stash
 
-# Start stack
-docker compose -f docker-compose.unified.yml up -d
+# Configure environment
+cp .env.example .env
+nano .env
 
-# Verify services
-docker compose -f docker-compose.unified.yml ps
+# Start all services
+docker-compose up -d
 
-# Check health
-curl http://localhost:9999  # Stash
+# Verify services are running
+docker-compose ps
+
+# View logs
+docker-compose logs -f
+```
+
+### Environment Configuration
+
+Edit `.env` file:
+```env
+# Domain Configuration
+DOMAIN=blbgensixai.club
+SSL_EMAIL=admin@blbgensixai.club
+
+# Database Credentials
+POSTGRES_DB=blbgensixai
+POSTGRES_USER=postgres
+POSTGRES_PASSWORD=secure_db_password
+
+# Redis Configuration
+REDIS_PASSWORD=secure_redis_password
+
+# Vault Configuration
+VAULT_ROOT_TOKEN=your_vault_root_token
+
+# MinIO Configuration
+MINIO_ROOT_USER=minioadmin
+MINIO_ROOT_PASSWORD=secure_minio_password
+
+# Grafana Configuration
+GRAFANA_ADMIN_USER=admin
+GRAFANA_ADMIN_PASSWORD=secure_grafana_password
+
+# Meilisearch
+MEILI_MASTER_KEY=secure_meili_key
+
+# Cloudflare (optional)
+CLOUDFLARE_API_KEY=
+CLOUDFLARE_ZONE_ID=
+```
+
+### Service Groups
+
+Start specific service groups:
+```bash
+# Core infrastructure only
+docker-compose up -d nginx postgres redis
+
+# Monitoring stack
+docker-compose up -d prometheus grafana node-exporter cadvisor
+
+# Logging stack
+docker-compose up -d loki promtail
+
+# Security stack
+docker-compose up -d vault fail2ban clamav
 ```
 
 ---
 
-## 📋 SERVICES (12)
+## 🔒 Security Hardening Details
 
-### Core Media Management
-| Service | Port | Purpose |
-|---------|------|---------|
-| **Stash** | 9999 | Media library manager, scene organization |
-| **Namer** | 6980 | Automated scene naming & tagging |
-| **Whisparr** | 6969 | Audio/music library organization |
-| **Open Liberty** | 9080 | Java REST APIs, microservices |
+### Nginx Security Configuration
 
-### Data & Infrastructure
-| Service | Port | Purpose |
-|---------|------|---------|
-| **PostgreSQL** | 5432 | Unified relational database |
-| **Redis** | 6379 | Cache, sessions, pub/sub |
-| **Chrome CDP** | 9222 | Headless browser automation |
-| **Transmission** | 9091 | Torrent client, DHT |
+Located in `nginx/security.conf`:
+```nginx
+# Security headers
+add_header X-Frame-Options "SAMEORIGIN" always;
+add_header X-Content-Type-Options "nosniff" always;
+add_header X-XSS-Protection "1; mode=block" always;
+add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+add_header Content-Security-Policy "default-src 'self' ..." always;
 
-### API & Scraping
-| Service | Port | Purpose |
-|---------|------|---------|
-| **UniScrape** | 9876 | Multi-scraper API (11 endpoints) |
-| **IMDB Scraper** | 3000 | Movie metadata & posters API |
-| **Nginx** | 80/443 | Reverse proxy, SSL, rate limiting |
+# Rate limiting
+limit_req_zone $binary_remote_addr zone=api:10m rate=10r/s;
+limit_req_zone $binary_remote_addr zone=login:10m rate=2r/s;
 
-### Management
-| Service | Port | Purpose |
-|---------|------|---------|
-| **Portainer** | 9000 | Container management UI |
+# SSL hardening
+ssl_protocols TLSv1.2 TLSv1.3;
+ssl_ciphers ECDHE-RSA-AES256-GCM-SHA512:DHE-RSA-AES256-GCM-SHA512:ECDHE-RSA-AES256-GCM-SHA384;
+ssl_prefer_server_ciphers off;
+ssl_session_timeout 1d;
+ssl_session_cache shared:SSL:50m;
+```
+
+### Vault Secrets Management
+
+Initialize Vault:
+```bash
+# Start Vault
+docker-compose up -d vault
+
+# Initialize (run once)
+docker-compose exec vault vault operator init -key-shares=5 -key-threshold=3
+
+# Unseal Vault (required after restart)
+docker-compose exec vault vault operator unseal <key1>
+docker-compose exec vault vault operator unseal <key2>
+docker-compose exec vault vault operator unseal <key3>
+
+# Login
+docker-compose exec vault vault login <root_token>
+```
+
+Store secrets:
+```bash
+# Store API keys
+vault kv put secret/blbgensixai/openai-api-key value=sk-...
+
+# Store database credentials
+vault kv put secret/blbgensixai/postgres \
+  username=postgres \
+  password=secure_password
+
+# Read secrets
+vault kv get secret/blbgensixai/openai-api-key
+```
+
+### Fail2ban Configuration
+
+Located in `security/fail2ban/`:
+```ini
+# /etc/fail2ban/jail.local
+[DEFAULT]
+bantime = 3600
+findtime = 600
+maxretry = 5
+
+[nginx-limit-req]
+enabled = true
+filter = nginx-limit-req
+logpath = /var/log/nginx/error.log
+bantime = 7200
+
+[nginx-botsearch]
+enabled = true
+filter = nginx-botsearch
+logpath = /var/log/nginx/access.log
+```
+
+### ClamAV Antivirus
+
+```bash
+# Update virus definitions
+docker-compose exec clamav freshclam
+
+# Scan a directory
+docker-compose exec clamav clamscan -r /data
+
+# Automatic scanning (configured in docker-compose)
+# Scans /data volume every 6 hours
+```
+
+### Network Isolation
+
+Services communicate through isolated Docker networks:
+```yaml
+networks:
+  frontend:
+    driver: bridge
+  backend:
+    driver: bridge
+    internal: true  # No external access
+  database:
+    driver: bridge
+    internal: true
+```
+
+Only Nginx proxy has external access; all other services are isolated.
 
 ---
 
-## 🔗 SERVICE ENDPOINTS
+## 📊 Monitoring Guide
 
-### Direct Access
-```
-Stash:          http://localhost:9999
-Namer:          http://localhost:6980
-Whisparr:       http://localhost:6969
-Liberty:        http://localhost:9080
-IMDB Scraper:   http://localhost:3000
-UniScrape:      http://localhost:9876
-Portainer:      http://localhost:9000
+### Prometheus Metrics
+
+Access Prometheus at `http://localhost:9090`
+
+Key metrics to monitor:
+```promql
+# Container CPU usage
+sum(rate(container_cpu_usage_seconds_total[5m])) by (container)
+
+# Memory usage
+sum(container_memory_usage_bytes) by (container)
+
+# HTTP request rate
+rate(nginx_http_requests_total[5m])
+
+# Database connections
+pg_stat_database_numbackends{datname="blbgensixai"}
+
+# Redis memory
+redis_memory_used_bytes
 ```
 
-### Via Nginx (HTTPS)
-```
-https://localhost/stash           # Stash Media Manager
-https://localhost/namer           # Namer (scene automation)
-https://localhost/whisparr        # Whisparr (music)
-https://localhost/liberty         # Liberty (APIs)
-https://localhost/imdb            # IMDB Scraper
-https://localhost/api             # UniScrape API
+### Grafana Dashboards
+
+Access Grafana at `http://localhost:3000` (admin / configured password)
+
+Import pre-built dashboards:
+```bash
+# Copy dashboard JSON files
+cp dashboards/*.json /var/lib/grafana/dashboards/
+
+# Or import via UI:
+# Dashboards → Import → Upload JSON file
 ```
 
-### Health Checks
+Available dashboards:
+- **System Overview**: CPU, RAM, Disk, Network
+- **Application Metrics**: Request rate, latency, errors
+- **Database Performance**: Connections, queries, locks
+- **Redis Metrics**: Memory, keys, hit rate
+- **Docker Containers**: Per-container stats
+
+### Alerting Rules
+
+Configure in `monitoring/prometheus/alerts.yml`:
+```yaml
+groups:
+  - name: stash_alerts
+    rules:
+      - alert: HighCPUUsage
+        expr: sum(rate(container_cpu_usage_seconds_total[5m])) by (container) > 0.8
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High CPU usage on {{ $labels.container }}"
+
+      - alert: DatabaseDown
+        expr: up{job="postgres"} == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "PostgreSQL is down"
 ```
-curl http://localhost:9999/               # Stash
-curl http://localhost:9876/health         # UniScrape
-curl http://localhost:9080/health         # Liberty
-curl http://localhost:3000/health         # IMDB Scraper
+
+### Loki Log Aggregation
+
+Access Loki at `http://localhost:3100`
+
+Query logs in Grafana:
+1. Add Loki as data source
+2. Use LogQL queries:
+   ```
+   {container="nginx"} |= "error"
+   {service="blbgensixai"} |= "exception"
+   ```
+
+### Health Check Endpoints
+
+All services expose health checks:
+```bash
+# Nginx
+curl http://localhost/health
+
+# PostgreSQL
+docker-compose exec postgres pg_isready
+
+# Redis
+docker-compose exec redis redis-cli ping
+
+# Meilisearch
+curl http://localhost:7700/health
+
+# Vault
+curl http://localhost:8200/v1/sys/health
 ```
 
 ---
 
-## 📁 FILE STRUCTURE
+## 🗂️ Project Structure
 
 ```
 stash/
-├── docker-compose.unified.yml    (12 services config)
-├── COMPLETE_ECOSYSTEM_SUMMARY.md (17.5KB) ⭐ Full overview
-├── DEPLOYMENT_GUIDE.md           (9.3KB)  ⭐ Quick start
-├── IMDB_SCRAPER_API.md           (13.9KB) API reference
-├── OPENLIBERTY_GUIDE.md          (11.2KB) Java development
-├── OPENLIBERTY_INTEGRATION.txt   (12.7KB) Integration summary
-├── SECURITY_AUDIT_REPORT.txt     (9.6KB)  Security details
-├── SKILLS_AND_PLUGINS_INVENTORY.md (15.7KB) Tool map
-├── STASH_PLUGINS_GUIDE.md        (15.8KB) Plugin development
-├── security-hardening.ps1        (11.2KB) Windows hardening
+├── docker-compose.yml           # Main compose file
+├── docker-compose.prod.yml      # Production overrides
+├── .env.example                 # Environment template
+├── 
+├── nginx/                       # Nginx configurations
+│   ├── conf.d/
+│   │   ├── default.conf         # Main site config
+│   │   ├── blbgensixai.club.conf
+│   │   └── ssl.conf             # SSL configuration
+│   ├── security.conf            # Security headers
+│   └── nginx.conf               # Main config
 │
-├── nginx/
-│   ├── nginx.conf                (Reverse proxy + SSL)
-│   ├── ssl/
-│   │   ├── cert.pem              (SSL certificate)
-│   │   └── key.pem               (Private key)
-│   └── html/                     (Static files)
+├── postgres/                    # PostgreSQL configs
+│   ├── init.sql                 # Initialization scripts
+│   ├── postgresql.conf          # Custom config
+│   └── pg_hba.conf              # Access control
 │
-├── open-liberty/
-│   ├── Dockerfile                (Java app build)
-│   ├── server.xml                (Liberty config)
-│   ├── LivenessCheck.java        (Health endpoint)
-│   └── ApiResource.java          (REST API sample)
+├── redis/                       # Redis configurations
+│   ├── redis.conf
+│   └── persistence.conf
 │
-├── plugins/                      (Stash plugins - 5)
-│   ├── IMDBIntegration/
-│   ├── UniScrapeAPI/
-│   ├── ProxyRotation/
-│   ├── AutoNaming/
-│   └── MediaLibrarySync/
+├── monitoring/                  # Monitoring stack
+│   ├── prometheus/
+│   │   ├── prometheus.yml       # Prometheus config
+│   │   ├── alerts.yml           # Alert rules
+│   │   └── targets.json        # Scrape targets
+│   ├── grafana/
+│   │   ├── dashboards/          # JSON dashboards
+│   │   └── datasources/         # Data source configs
+│   └── alertmanager/
+│       └── alertmanager.yml
 │
-├── postgres/init-scripts/        (DB init)
-└── [volumes mounted from Docker]
+├── logging/                     # Logging stack
+│   ├── loki/
+│   │   └── loki-config.yaml
+│   └── promtail/
+│       └── promtail-config.yaml
+│
+├── security/                    # Security configs
+│   ├── vault/
+│   │   ├── config.hcl
+│   │   └── policies/
+│   ├── fail2ban/
+│   │   ├── jail.local
+│   │   └── filter.d/
+│   └── clamav/
+│       └── clamd.conf
+│
+├── scripts/                     # Utility scripts
+│   ├── backup.sh                # Backup script
+│   ├── restore.sh               # Restore script
+│   ├── health-check.sh          # Health check
+│   └── unseal-vault.sh          # Vault unseal
+│
+├── certs/                       # SSL certificates
+│   ├── live/                    # Let's Encrypt certs
+│   └── cloudflare/              # Cloudflare origin certs
+│
+└── data/                        # Persistent volumes
+    ├── postgres/
+    ├── redis/
+    ├── meilisearch/
+    └── minio/
 ```
 
 ---
 
-## 🎯 COMMON TASKS
+## 🚀 Common Operations
 
-### 1. Start/Stop Stack
-```bash
-# Start all services
-docker compose -f docker-compose.unified.yml up -d
-
-# Stop all services
-docker compose -f docker-compose.unified.yml down
-
-# View logs
-docker compose -f docker-compose.unified.yml logs -f
-
-# Restart single service
-docker compose -f docker-compose.unified.yml restart stash
-```
-
-### 2. Scrape IMDB
-```bash
-# Get top 50 movies
-curl http://localhost:3000/api/scrape/titles | jq .
-
-# Get posters
-curl http://localhost:3000/api/scrape/posters | jq '.data[] | {title, posterUrl}'
-
-# Specific movie
-curl http://localhost:3000/api/scrape/movie/tt0111161 | jq .
-```
-
-### 3. Query API
-```bash
-# UniScrape search
-curl -X POST http://localhost:9876/api/search \
-  -H "Content-Type: application/json" \
-  -d '{"query":"search term","source":"stash"}'
-
-# Get health
-curl http://localhost:9876/health
-```
-
-### 4. Database Access
-```bash
-# Connect to PostgreSQL
-docker exec -it postgres psql -U uniscrape -d uniscrape
-
-# Backup database
-docker exec postgres pg_dump -U uniscrape uniscrape > backup.sql
-
-# Restore database
-docker exec -i postgres psql -U uniscrape uniscrape < backup.sql
-```
-
-### 5. View Logs
-```bash
-# Stash logs
-docker logs -f stash
-
-# IMDB Scraper logs
-docker logs -f imdb-scraper
-
-# Liberty logs
-docker logs -f liberty
-
-# Nginx logs
-docker logs -f nginx-proxy
-```
-
-### 6. Monitor Services
-```bash
-# Container stats
-docker stats
-
-# Check health
-docker ps --format "table {{.Names}}\t{{.Status}}"
-
-# Portainer UI
-http://localhost:9000
-```
-
----
-
-## 🔐 SECURITY
-
-✅ **What's Secured**
-- SSL/TLS termination (Nginx on 443)
-- No hardcoded secrets (env variables)
-- Rate limiting (10 req/s general, 5 req/s scrape)
-- Network isolation (backend bridge)
-- Resource limits (CPU, memory per container)
-- Non-root users in containers
-- Health checks with auto-restart
-- Security headers (HSTS, CSP, X-Frame-Options)
-- Firewall rules (Windows)
-- Zero npm vulnerabilities
-
-⚠️ **For Production**
-- [ ] Replace self-signed SSL with CA certificate
-- [ ] Change PostgreSQL password from `uniscrape`
-- [ ] Change Redis password from `redispass123`
-- [ ] Set up centralized logging
-- [ ] Enable secret management (Vault)
-- [ ] Configure monitoring/alerting
-
-→ See [SECURITY_AUDIT_REPORT.txt](SECURITY_AUDIT_REPORT.txt) for details
-
----
-
-## 📊 RESOURCES
-
-**Memory**: 16GB allocated (configurable)
-**CPU**: 8 cores allocated (configurable)
-**Storage**: 16 volumes, ~100GB+ capacity
-**Network**: Isolated backend bridge (172.20.0.0/16)
-
-**Per Service (Current)**
-- Stash: 4GB / 4 CPUs
-- UniScrape: 2GB / 2 CPUs
-- Chrome: 2GB / 2 CPUs
-- Liberty: 2GB / 2 CPUs
-- PostgreSQL: 1.5GB / 1.5 CPUs
-- IMDB: 1.5GB / 1.5 CPUs
-- Others: ~1.5GB reserved
-
-→ See [COMPLETE_ECOSYSTEM_SUMMARY.md](COMPLETE_ECOSYSTEM_SUMMARY.md) for scaling recommendations
-
----
-
-## 🛠️ INTEGRATED TOOLS (50+)
-
-### Scraping & Crawling
-- SourceScraper (anime), html2rss, html-meta-extractor, ProxyCrawl, scraperx, scraply, Web-Spider
-
-### Image Processing
-- libvips (C), pyvips, php-vips, ruby-vips
-
-### Media Management
-- CommunityScrapers (802 YAML scrapers), CommunityScripts (542 plugins), multi-scrobbler, rapidbay
-
-### Infrastructure
-- docker-iot-dashboard, docker-home-server, docker-nginx-https, easy-multidomain-docker-server
-
-### Stash Plugins (5 Created)
-- IMDB Integration, UniScrape API, Proxy Rotation, Auto-Naming, Media Library Sync
-
-→ See [SKILLS_AND_PLUGINS_INVENTORY.md](SKILLS_AND_PLUGINS_INVENTORY.md) for complete list
-
----
-
-## 🆘 TROUBLESHOOTING
-
-### Service Won't Start
-```bash
-docker logs <service-name>
-docker compose -f docker-compose.unified.yml restart <service>
-```
-
-### Port Already in Use
-```bash
-docker ps  # Find conflicting container
-docker stop <container>
-```
-
-### Database Connection Error
-```bash
-docker exec postgres pg_isready
-docker volume rm stash_postgres_data
-docker compose -f docker-compose.unified.yml up -d postgres
-```
-
-### Memory/CPU High
-```bash
-docker stats
-# Reduce limits in docker-compose.yml
-docker compose -f docker-compose.unified.yml restart
-```
-
-→ More troubleshooting: [DEPLOYMENT_GUIDE.md](DEPLOYMENT_GUIDE.md#-troubleshooting)
-
----
-
-## 📚 DOCUMENTATION
-
-| Document | Size | Purpose |
-|----------|------|---------|
-| **DEPLOYMENT_GUIDE.md** | 9.3KB | ⭐ Quick start, endpoints, troubleshooting |
-| **COMPLETE_ECOSYSTEM_SUMMARY.md** | 17.5KB | Full architecture, benchmarks, checklists |
-| **IMDB_SCRAPER_API.md** | 13.9KB | API reference, examples (JS, Python, PHP) |
-| **OPENLIBERTY_GUIDE.md** | 11.2KB | Java app development, database access |
-| **OPENLIBERTY_INTEGRATION.txt** | 12.7KB | Integration summary, deployment |
-| **STASH_PLUGINS_GUIDE.md** | 15.8KB | Plugin development (5 ready-made plugins) |
-| **SKILLS_AND_PLUGINS_INVENTORY.md** | 15.7KB | 50+ tools & services mapped |
-| **SECURITY_AUDIT_REPORT.txt** | 9.6KB | Security features, recommendations, fixes |
-| **docker-compose.unified.yml** | 13.6KB | Complete service configuration |
-
-**Total Documentation**: ~120KB of detailed guides
-
----
-
-## ✨ HIGHLIGHTS
-
-✅ **All-in-One Ecosystem** (12 services + 50+ tools)
-✅ **Production-Ready** (security hardened, audited)
-✅ **Easy Deployment** (single docker-compose command)
-✅ **Well-Documented** (9 comprehensive guides)
-✅ **Custom Plugins** (5 Stash plugins included)
-✅ **REST APIs** (Liberty, IMDB, UniScrape)
-✅ **Database Included** (PostgreSQL unified)
-✅ **SSL/TLS** (Nginx termination)
-✅ **Rate Limiting** (anti-DoS)
-✅ **Health Checks** (auto-restart)
-✅ **Scalable** (Docker Swarm / Kubernetes ready)
-✅ **Zero Secrets** (env variables only)
-
----
-
-## 🚀 NEXT STEPS
-
-1. **Read** [DEPLOYMENT_GUIDE.md](DEPLOYMENT_GUIDE.md) (10 min read)
-2. **Deploy** the stack (3 commands)
-3. **Verify** services are running (30 seconds)
-4. **Access** services at http://localhost:9999, etc.
-5. **Develop** custom plugins or APIs
-6. **Scale** to production with Kubernetes
-
----
-
-## 📞 SUPPORT
-
-- **Stash Docs**: https://docs.stashapp.cc/
-- **Open Liberty**: https://openliberty.io/docs/
-- **Docker Docs**: https://docs.docker.com/
-- **PostgreSQL**: https://www.postgresql.org/docs/
-- **Redis**: https://redis.io/documentation
-
----
-
-## 📋 CHECKLIST
-
-Before going live:
-
-- [ ] Read DEPLOYMENT_GUIDE.md
-- [ ] Update PostgreSQL password
-- [ ] Update Redis password
-- [ ] Replace SSL certificates (if production)
-- [ ] Run security-hardening.ps1
-- [ ] Configure firewall rules
-- [ ] Test all endpoints (curl tests)
-- [ ] Review logs for errors
-- [ ] Set up backups
-- [ ] Plan monitoring/alerting
-
----
-
-## 📄 LICENSE
-
-Ecosystem integrates open-source projects under their respective licenses:
-- Stash (GPL-3.0)
-- Open Liberty (EPL 2.0)
-- Docker (Apache 2.0)
-- PostgreSQL (PostgreSQL License)
-- Redis (RSALv2)
-- Nginx (2-clause BSD)
-
----
-
-**Version**: 1.0.0 (Production-Ready)
-**Created**: 2026-05-05
-**Status**: 🟢 Ready to Deploy
-
----
-
-## 🎯 QUICK START
+### Backup All Data
 
 ```bash
-# 1. Navigate to stack directory
-cd stash/
+# Run backup script
+./scripts/backup.sh
 
-# 2. Start all services
-docker compose -f docker-compose.unified.yml up -d
+# Manual backup
+# PostgreSQL
+docker-compose exec postgres pg_dump -U postgres blbgensixai > backup_$(date +%Y%m%d).sql
 
-# 3. Wait ~60 seconds for health checks
-sleep 60
+# Redis
+docker-compose exec redis redis-cli BGSAVE
 
-# 4. Verify services running
-docker compose -f docker-compose.unified.yml ps
+# MinIO (use mc client)
+docker-compose exec minio mc mirror /data /backup
+```
 
-# 5. Access Stash at http://localhost:9999
-# Access Portainer at http://localhost:9000
-# Access Nginx (HTTPS) at https://localhost/
+### Restore from Backup
 
-# Done! 🎉
+```bash
+# PostgreSQL
+cat backup_20240115.sql | docker-compose exec -T postgres psql -U postgres blbgensixai
+
+# Restore Vault secrets
+vault operator restore -sha256 < backup.vault
+```
+
+### Update Services
+
+```bash
+# Pull latest images
+docker-compose pull
+
+# Recreate containers with new images
+docker-compose up -d --force-recreate
+
+# Clean up old images
+docker image prune -a
+```
+
+### Scale Services
+
+```bash
+# Scale workers
+docker-compose up -d --scale worker=5
+
+# Scale nginx (requires load balancer)
+docker-compose up -d --scale nginx=2
 ```
 
 ---
 
-**Need help?** → Start with [DEPLOYMENT_GUIDE.md](DEPLOYMENT_GUIDE.md)
+## 📞 Support
 
-**Want to develop?** → Read [OPENLIBERTY_GUIDE.md](OPENLIBERTY_GUIDE.md) or [STASH_PLUGINS_GUIDE.md](STASH_PLUGINS_GUIDE.md)
+- **GitHub Issues**: [Report infrastructure issues](https://github.com/mgtechgroup/stash/issues)
+- **Documentation**: [Full infrastructure docs](https://docs.blbgensixai.club/infrastructure)
+- **Email**: ops@blbgensixai.club
 
-**Curious about tools?** → Check [SKILLS_AND_PLUGINS_INVENTORY.md](SKILLS_AND_PLUGINS_INVENTORY.md)
+---
 
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+---
+
+## 🙏 Acknowledgments
+
+- HashiCorp for Vault
+- Prometheus & Grafana communities
+- All open-source projects that power this infrastructure stack
