@@ -1,0 +1,14 @@
+id: untagRedundantTags
+name: Remove redundant parent tags from tagged objects
+metadata:
+  description: Removes parent tags from objects if a more specific child tag is also
+    present
+version: 0.1-43feb59
+date: "2025-12-20 01:59:59"
+requires: []
+source_repository: https://stashapp.github.io/CommunityScripts/stable/index.yml
+files:
+- README.md
+- untagRedundantTags.yml
+- untagRedundantTags.py
+- requirements.txt

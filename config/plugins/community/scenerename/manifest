@@ -1,0 +1,13 @@
+id: scenerename
+name: SceneRename
+metadata:
+  description: Renames scene files to 'Studio
+version: 1.0.1-f926955
+date: "2026-02-16 22:10:15"
+requires: []
+source_repository: https://stashapp.github.io/CommunityScripts/stable/index.yml
+files:
+- scenerename.py
+- scenerename.yml
+- README.md
+- screenshots/Screenshot.png

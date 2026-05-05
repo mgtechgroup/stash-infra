@@ -1,0 +1,30 @@
+id: GroupDetails
+name: Group Details
+metadata:
+  description: Adds group-card metrics for filtered duration and average vertical
+    resolution.
+version: 0.2.3-e1e7522
+date: "2026-04-15 21:34:56"
+requires: []
+source_repository: https://stashapp.github.io/CommunityScripts/stable/index.yml
+files:
+- images.js
+- screenshot.png
+- README.md
+- GroupDetails.js
+- assets/720p.png
+- assets/360p.png
+- assets/.gitkeep
+- assets/2k.png
+- assets/6k.png
+- assets/240p.png
+- assets/1080p.png
+- assets/4k.png
+- assets/5k.png
+- assets/480p.png
+- assets/144p.png
+- assets/8k.png
+- details.png
+- build.sh
+- GroupDetails.yml
+- GroupDetails.css

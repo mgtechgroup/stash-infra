@@ -1,0 +1,13 @@
+id: TPDBMarkers
+name: The Porn DB Markers
+metadata:
+  description: Sync Markers from The Porn DB aka theporndb.net
+version: 0.4.4-884f27b
+date: "2026-02-26 20:37:22"
+requires: []
+source_repository: https://stashapp.github.io/CommunityScripts/stable/index.yml
+files:
+- TPDBMarkers.yml
+- tpdbMarkers.py
+- README.md
+- requirements.txt

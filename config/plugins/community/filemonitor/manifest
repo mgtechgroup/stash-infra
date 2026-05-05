@@ -1,0 +1,21 @@
+id: filemonitor
+name: FileMonitor
+metadata:
+  description: Monitors the Stash library folders, and updates Stash if any changes
+    occurs in the Stash library paths.
+version: 1.0.5-43feb59
+date: "2025-12-20 01:59:59"
+requires: []
+source_repository: https://stashapp.github.io/CommunityScripts/stable/index.yml
+files:
+- StashPluginHelper.py
+- ModulesValidate.py
+- filemonitor.js
+- README.md
+- version_history/README.md
+- filemonitor_config.py
+- filemonitor_self_unit_test.py
+- requirements.txt
+- filemonitor_task_examples.py
+- filemonitor.py
+- filemonitor.yml

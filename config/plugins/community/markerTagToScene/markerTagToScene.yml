@@ -1,0 +1,25 @@
+name: Scene Marker Tags to Scene
+description: Adds primary tag of Scene Marker to the Scene on marker create/update.
+version: 1.0
+url: https://discourse.stashapp.cc/t/scene-marker-tags-to-scene/1382
+exec:
+  - markerTagToScene.js
+interface: js
+settings:
+  allTags:
+    displayName: All Tags
+    description: Add all scene tags instead of just the primary scene tag.
+    type: BOOLEAN
+hooks:
+  - name: Update scene with scene marker tag
+    description: Adds primary tag of Scene Marker to the Scene on marker create/update.
+    triggeredBy:
+      - SceneMarker.Create.Post
+      - SceneMarker.Update.Post
+    defaultArgs:
+      mode: hook
+tasks:
+  - name: Process all markers
+    description: Add tags from all markers to scenes
+    defaultArgs:
+      mode: processMarkers

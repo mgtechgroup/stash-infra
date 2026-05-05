@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<server description="Open Liberty Server Configuration for UniScrape Integration">
+
+    <!-- Port definitions -->
+    <httpEndpoint id="defaultHttpEndpoint"
+                   host="0.0.0.0"
+                   port="9080"
+                   httpPort="9080"
+                   httpsPort="9443">
+        <accessLogging id="accessLogging"
+                       logFormat='%h %u %t "%r" %s %b %D'
+                       filepath="/opt/ol/wlp/output/defaultServer/logs/http_access.log"/>
+    </httpEndpoint>
+
+    <!-- HTTPS/SSL Configuration (optional - disable if behind nginx) -->
+    <sslDefault sslRef="defaultSSLConfig" />
+    <ssl id="defaultSSLConfig"
+         keyStoreRef="defaultKeyStore"
+         trustStoreRef="defaultTrustStore"
+         sslProtocol="TLSv1.2,TLSv1.3"/>
+
+    <keyStore id="defaultKeyStore"
+              location="${server.config.dir}/resources/security/key.jks"
+              type="jks"
+              password="changeit"/>
+
+    <keyStore id="defaultTrustStore"
+              location="${server.config.dir}/resources/security/trust.jks"
+              type="jks"
+              password="changeit"/>
+
+    <!-- Features Configuration -->
+    <featureManager>
+        <!-- Web Profile 10.0 - Jakarta EE 10 -->
+        <feature>webProfile-10.0</feature>
+
+        <!-- REST and API Support -->
+        <feature>openapi-3.1</feature>
+        <feature>mpRestClient-3.0</feature>
+
+        <!-- Microprofile Features -->
+        <feature>mpMetrics-5.0</feature>
+        <feature>mpConfig-3.0</feature>
+        <feature>mpHealth-4.0</feature>
+
+        <!-- Security -->
+        <feature>transportSecurity-1.0</feature>
+        <feature>jwtSso-1.0</feature>
+
+        <!-- Data Access -->
+        <feature>jpa-3.1</feature>
+        <feature>jdbc-4.3</feature>
+
+        <!-- JSON Processing -->
+        <feature>json-2.0</feature>
+        <feature>jsonp-2.1</feature>
+    </featureManager>
+
+    <!-- Application Configuration -->
+    <webApplication location="app.war" contextRoot="/" />
+
+    <!-- Datasource Configuration (Example - adjust for your DB) -->
+    <datasource id="DefaultDataSource" jndiName="jdbc/DefaultDS">
+        <jdbcDriver libraryRef="PostgreSQLLibrary"/>
+        <properties.postgresql
+            serverName="postgres"
+            portNumber="5432"
+            databaseName="uniscrape"
+            user="uniscrape"
+            password="${DB_PASSWORD}"/>
+        <connectionManager
+            maxPoolSize="10"
+            minPoolSize="2"
+            connectionTimeout="30s"
+            reapTime="180s"/>
+    </datasource>
+
+    <library id="PostgreSQLLibrary">
+        <fileset dir="${server.config.dir}/lib" includes="postgresql-*.jar"/>
+    </library>
+
+    <!-- Logging Configuration -->
+    <logging
+        traceSpecification="*=info"
+        maxFileSize="20M"
+        maxFiles="10"
+        logDirectory="/opt/ol/wlp/output/defaultServer/logs">
+    </logging>
+
+    <!-- Monitor Configuration -->
+    <monitor filter="*" interval="1s"/>
+
+    <!-- Health Check Endpoints -->
+    <webApplication location="health-app.war" contextRoot="/health" />
+
+    <!-- Session Configuration -->
+    <httpSession
+        invalidationTimeout="30m"
+        idLength="40"
+        cookieSecure="true"
+        cookieHttpOnly="true"
+        cookieSameSite="Strict"/>
+
+    <!-- Security Configuration -->
+    <basicRegistry id="basic" realm="BasicRegistry">
+        <!-- Users can be added here or via LDAP/external auth -->
+    </basicRegistry>
+
+    <authorization-roles id="adminAuthorization">
+        <author-to-groups>
+            <mapping groupName="Administrator" userAccessId="admin"/>
+        </author-to-groups>
+    </authorization-roles>
+
+    <!-- JVM Configuration -->
+    <jvm>
+        <option>-Dcom.ibm.ws.logging.console.format=json</option>
+        <option>-Djava.util.logging.manager=com.ibm.ws.logging.WsLogManager</option>
+    </jvm>
+
+    <!-- Include time-based variable for logging -->
+    <include location="${server.config.dir}/configDropins/defaults/logging.xml" optional="true"/>
+    <include location="${server.config.dir}/configDropins/overrides/custom.xml" optional="true"/>
+
+</server>

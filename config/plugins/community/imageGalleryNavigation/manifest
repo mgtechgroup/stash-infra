@@ -1,0 +1,14 @@
+id: imageGalleryNavigation
+name: imageGalleryNavigation
+metadata:
+  description: This plugin adds features for navigating between images within a Gallery
+    from the Image details page.
+version: 0.4-c981bc4
+date: "2026-01-16 01:29:54"
+requires: []
+source_repository: https://stashapp.github.io/CommunityScripts/stable/index.yml
+files:
+- README.md
+- imageGalleryNavigation.js
+- imageGalleryNavigation.css
+- imageGalleryNavigation.yml

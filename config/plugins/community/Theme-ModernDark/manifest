@@ -1,0 +1,12 @@
+id: Theme-ModernDark
+name: Theme - ModernDark
+metadata:
+  description: ModernDark Theme for Stash by cj13
+version: 1.3-c10e0d2
+date: "2025-12-24 20:34:07"
+requires: []
+source_repository: https://stashapp.github.io/CommunityScripts/stable/index.yml
+files:
+- Theme-ModernDark.css
+- Theme-ModernDark.yml
+- README.md

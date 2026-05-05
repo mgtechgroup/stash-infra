@@ -1,0 +1,14 @@
+id: Theme-ColorPalette
+name: Theme - colorPalette
+metadata:
+  description: Based on the default theme, change the overall color of the page by
+    setting the hue value. Make minor changes to the remaining styles.
+version: 0.1-43feb59
+date: "2025-12-20 01:59:59"
+requires: []
+source_repository: https://stashapp.github.io/CommunityScripts/stable/index.yml
+files:
+- Theme-ColorPalette.css
+- Theme-ColorPalette.yml
+- README.md
+- Theme-ColorPalette.js

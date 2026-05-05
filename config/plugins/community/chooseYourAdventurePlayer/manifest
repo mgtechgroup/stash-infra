@@ -1,0 +1,29 @@
+id: chooseYourAdventurePlayer
+name: Choose Your Own Adventure Player (Backer)
+metadata:
+  description: Plugin to adapt Choose Your Own Adventure Games to the VideoJS player.
+version: 1.0.1-43feb59
+date: "2025-12-20 01:59:59"
+requires: []
+source_repository: https://stashapp.github.io/CommunityScripts/stable/index.yml
+files:
+- Sample/1234/videos/Scene2A-1.mp4
+- Sample/1234/videos/Scene1b.mp4
+- Sample/1234/videos/Scene2A-2.mp4
+- Sample/1234/videos/Scene2A.mp4
+- Sample/1234/videos/Scene1a.mp4
+- Sample/1234/videos/Scene0.mp4
+- Sample/1234/videos/Scene2B.mp4
+- Sample/1234/choices/1b-e.json
+- Sample/1234/choices/1a.json
+- Sample/1234/choices/2-e.json
+- Sample/1234/choices/1b.json
+- Sample/1234/choices/0.json
+- Sample/1234/choices/2.json
+- Sample/1234/images/end-screen.png
+- Sample/1234/images/poster-1.png
+- Sample/1234/images/good.jpg
+- Sample/1234/images/poster-2.png
+- Sample/1234/images/bad.jpg
+- README.md
+- chooseYourAdventurePlayer.yml

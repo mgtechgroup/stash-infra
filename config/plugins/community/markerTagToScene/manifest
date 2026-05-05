@@ -1,0 +1,12 @@
+id: markerTagToScene
+name: Scene Marker Tags to Scene
+metadata:
+  description: Adds primary tag of Scene Marker to the Scene on marker create/update.
+version: 1.0-43feb59
+date: "2025-12-20 01:59:59"
+requires: []
+source_repository: https://stashapp.github.io/CommunityScripts/stable/index.yml
+files:
+- README.md
+- markerTagToScene.js
+- markerTagToScene.yml

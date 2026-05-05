@@ -1,0 +1,23 @@
+id: DupFileManager
+name: DupFileManager
+metadata:
+  description: Manages duplicate files.
+version: 1.0.0-43feb59
+date: "2025-12-20 01:59:59"
+requires: []
+source_repository: https://stashapp.github.io/CommunityScripts/stable/index.yml
+files:
+- StashPluginHelper.py
+- ModulesValidate.py
+- advance_options.html
+- DupFileManager.js
+- .gitignore
+- DupFileManager.py
+- DupFileManager.css.map
+- README.md
+- DupFileManager_report_config.py
+- DupFileManager_config.py
+- DupFileManager.js.map
+- DupFileManager.yml
+- requirements.txt
+- DupFileManager.css

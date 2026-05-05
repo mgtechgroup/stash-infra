@@ -1,0 +1,29 @@
+id: AIOverhaul
+name: AIOverhaul
+metadata:
+  description: AI Overhaul for Stash with a full plugin engine included to install
+    and manage asynchronous stash plugins for AI or other purposes.
+version: 0.9.3-74b0986
+date: "2026-03-20 16:59:27"
+requires: []
+source_repository: https://stashapp.github.io/CommunityScripts/stable/index.yml
+files:
+- PageContext.js
+- SimilarScenes.js
+- AIButtonIntegration.js
+- BackendBase.js
+- README.md
+- BackendHealth.js
+- PluginSettings.js
+- InteractionTracker.js
+- AIOverhaul.yml
+- RecommendedScenes.js
+- VersionInfo.js
+- SimilarTabIntegration.js
+- plugin_setup.py
+- TaskDashboard.js
+- AIButton.js
+- RecommendationUtils.js
+- css/recommendedscenes.css
+- css/AIOverhaul.css
+- css/SimilarScenes.css

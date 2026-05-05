@@ -1,0 +1,14 @@
+id: funscript_haven
+name: Funscript Haven
+metadata:
+  description: Generates funscript files from video scenes using optical flow analysis.
+    Tag scenes with 'FunscriptHaven_Process' to queue them for processing.
+version: 1.0.0-c1a0224
+date: "2026-01-05 08:25:49"
+requires: []
+source_repository: https://stashapp.github.io/CommunityScripts/stable/index.yml
+files:
+- README.md
+- funscript_haven.yml
+- funscript_haven_config.py
+- funscript_haven.py

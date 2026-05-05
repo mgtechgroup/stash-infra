@@ -1,0 +1,16 @@
+id: deleter
+name: Addtional Files Deleter
+metadata:
+  description: Deletes addtional files assosiated with an image or scene object. Which
+    will usually have identical PHashes for scenes or Checksum for images. Unless
+    is a scene manually merged. Apply ignore tag to scene/image object for plugin
+    to bypass.
+version: 0.1-43feb59
+date: "2025-12-20 01:59:59"
+requires: []
+source_repository: https://stashapp.github.io/CommunityScripts/stable/index.yml
+files:
+- deleter.py
+- deleter.yml
+- README.md
+- requirements.txt

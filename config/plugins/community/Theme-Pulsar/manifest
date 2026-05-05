@@ -1,0 +1,12 @@
+id: Theme-Pulsar
+name: Theme - Pulsar
+metadata:
+  description: Plex Theme for Stash by Fonzie 2020-21
+version: 1.8.1-43feb59
+date: "2025-12-20 01:59:59"
+requires: []
+source_repository: https://stashapp.github.io/CommunityScripts/stable/index.yml
+files:
+- Theme-Pulsar.yml
+- README.md
+- Theme-Pulsar.css

@@ -1,0 +1,12 @@
+id: Theme-NeonDark
+name: Theme - NeonDark
+metadata:
+  description: NeonDark Theme for Stash by Dankonite
+version: 1.0-43feb59
+date: "2025-12-20 01:59:59"
+requires: []
+source_repository: https://stashapp.github.io/CommunityScripts/stable/index.yml
+files:
+- Theme-NeonDark.css
+- README.md
+- Theme-NeonDark.yml

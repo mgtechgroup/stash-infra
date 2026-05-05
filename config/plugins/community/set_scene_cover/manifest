@@ -1,0 +1,13 @@
+id: set_scene_cover
+name: Set Scene Cover
+metadata:
+  description: searches Stash for Scenes with a cover image in the same folder and
+    sets the cover image in stash to that image
+version: 0.4-43feb59
+date: "2025-12-20 01:59:59"
+requires: []
+source_repository: https://stashapp.github.io/CommunityScripts/stable/index.yml
+files:
+- set_cover.py
+- README.md
+- set_scene_cover.yml

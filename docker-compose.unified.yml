@@ -1,0 +1,596 @@
+version: '3.9'
+
+# Consolidated Stack: Stash + UniScrape + Whisparr + Infrastructure
+# Production-grade with security hardening, resource limits, health checks
+# Date: 2026-05-04
+
+services:
+
+  # ============================================
+  # CORE SERVICES
+  # ============================================
+
+  # Stash Media Manager & Library (using hotio nightly build)
+  stash:
+    image: ghcr.io/hotio/stash:nightly-01a7583364b97478dd582826fdfe9bff96c0ce97
+    container_name: stash
+    restart: unless-stopped
+    hostname: stash
+    ports:
+      - "9999:9999"
+    environment:
+      STASH_STASH: /data
+      STASH_GENERATED: /generated
+      STASH_METADATA: /metadata
+      STASH_CACHE: /cache
+      STASH_BLOBS: /blobs
+      STASH_PORT: "9999"
+    volumes:
+      - stash_config:/root/.stash:rw
+      - stash_data:/data:rw
+      - stash_metadata:/metadata:rw
+      - stash_cache:/cache:rw
+      - stash_blobs:/blobs:rw
+      - stash_generated:/generated:rw
+      - stash_scrapers:/scrapers:ro
+    networks:
+      - backend
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:9999"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    cap_add:
+      - NET_BIND_SERVICE
+    deploy:
+      resources:
+        limits:
+          cpus: '4'
+          memory: 4G
+        reservations:
+          cpus: '2'
+          memory: 2G
+
+  # UniScrape Universal Scraper API
+  uniscrape:
+    build:
+      context: ./UniversalScraper/docker
+      dockerfile: Dockerfile
+      cache_from:
+        - type=gha
+    image: ghcr.io/mgtechgroup/uniscrape:latest
+    container_name: uniscrape
+    restart: unless-stopped
+    hostname: uniscrape
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      chrome:
+        condition: service_started
+    ports:
+      - "9876:8085"
+    environment:
+      PORT: "8085"
+      NODE_ENV: production
+      SCRAPERS_PATH: /scrapers
+      DATABASE_URL: postgresql://uniscrape:uniscrape@postgres:5432/uniscrape
+      REDIS_URL: redis://redis:6379
+      CHROME_URL: http://chrome:9222
+      LOG_LEVEL: info
+    volumes:
+      - stash_scrapers:/scrapers:ro
+      - uniscrape_cache:/app/cache:rw
+      - /etc/timezone:/etc/timezone:ro
+      - /etc/localtime:/etc/localtime:ro
+    networks:
+      - backend
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8085/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 15s
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    cap_add:
+      - NET_BIND_SERVICE
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 2G
+        reservations:
+          cpus: '1'
+          memory: 1G
+
+  # Stash Namer - Automated Scene Naming/Organization
+  namer:
+    image: ghcr.io/theporndatabase/namer:latest
+    container_name: namer
+    restart: unless-stopped
+    hostname: namer
+    depends_on:
+      - stash
+    ports:
+      - "6980:6980"
+    environment:
+      PUID: "1001"
+      PGID: "1000"
+      TZ: America/Los_Angeles
+      NAMER_CONFIG: /config/namer.cfg
+    volumes:
+      - namer_config:/config:rw
+      - stash_data:/data:rw
+      - /etc/timezone:/etc/timezone:ro
+      - /etc/localtime:/etc/localtime:ro
+    networks:
+      - backend
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:6980/api/healthcheck || exit 1"]
+      interval: 60s
+      timeout: 30s
+      retries: 3
+      start_period: 45s
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    cap_add:
+      - NET_BIND_SERVICE
+      - CHOWN
+      - DAC_OVERRIDE
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 1G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+
+  # Whisparr - Audio/Music Organizer (Latest hotio build)
+  whisparr:
+    image: hotio/whisparr:latest
+    container_name: whisparr
+    restart: unless-stopped
+    hostname: whisparr
+    ports:
+      - "6969:6969"
+    environment:
+      PUID: "1000"
+      PGID: "1000"
+      TZ: UTC
+      LOG_LEVEL: info
+    volumes:
+      - whisparr_config:/config:rw
+      - /etc/timezone:/etc/timezone:ro
+      - /etc/localtime:/etc/localtime:ro
+    networks:
+      - backend
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:6969/system/status"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 45s
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    cap_add:
+      - NET_BIND_SERVICE
+      - CHOWN
+      - DAC_OVERRIDE
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 512M
+        reservations:
+          cpus: '0.5'
+          memory: 256M
+
+  # Open Liberty Java Application Server (Latest)
+  liberty:
+    image: open-liberty:latest
+    container_name: liberty
+    restart: unless-stopped
+    hostname: liberty
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - "9080:9080"
+      - "9443:9443"
+      - "9011:9011"
+    environment:
+      TZ: UTC
+      LANG: en_US.UTF-8
+      JAVA_OPTS: "-XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0 -XX:+UseStringDeduplication"
+      WLP_OUTPUT_DIR: /opt/ol/wlp/output
+      DB_PASSWORD: uniscrape
+    volumes:
+      - ./open-liberty/server.xml:/opt/ol/configDropins/defaults/server.xml:ro
+      - liberty_config:/opt/ol/wlp/usr:rw
+      - liberty_output:/opt/ol/wlp/output:rw
+      - /etc/timezone:/etc/timezone:ro
+      - /etc/localtime:/etc/localtime:ro
+    networks:
+      - backend
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    cap_add:
+      - NET_BIND_SERVICE
+      - CHOWN
+      - DAC_OVERRIDE
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 2G
+        reservations:
+          cpus: '1'
+          memory: 1G
+
+  # IMDB Scraper - Movie/TV Series Web Scraper with REST API
+  imdb-scraper:
+    build:
+      context: ../repos/scrape/imdb-scraper
+      dockerfile: Dockerfile
+    image: mgtechgroup/imdb-scraper:latest
+    container_name: imdb-scraper
+    restart: unless-stopped
+    hostname: imdb-scraper
+    ports:
+      - "3000:3000"
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      NODE_OPTIONS: "--max-old-space-size=512"
+      NIGHTMARE_ELECTRON_PATH: /usr/bin/chromium-browser
+    volumes:
+      - imdb_data:/app/posters:rw
+      - imdb_logs:/app/logs:rw
+      - /etc/timezone:/etc/timezone:ro
+      - /etc/localtime:/etc/localtime:ro
+    networks:
+      - backend
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      interval: 60s
+      timeout: 10s
+      retries: 3
+      start_period: 45s
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    cap_add:
+      - NET_BIND_SERVICE
+    deploy:
+      resources:
+        limits:
+          cpus: '1.5'
+          memory: 1.5G
+        reservations:
+          cpus: '1'
+          memory: 1G
+
+  # ============================================
+  # INFRASTRUCTURE & DEPENDENCIES
+  # ============================================
+
+  # PostgreSQL Database (Uniscrape, metadata)
+  postgres:
+    image: postgres:16-alpine
+    container_name: postgres
+    restart: unless-stopped
+    hostname: postgres
+    environment:
+      POSTGRES_DB: uniscrape
+      POSTGRES_USER: uniscrape
+      POSTGRES_PASSWORD: uniscrape
+      POSTGRES_INITDB_ARGS: "--encoding=UTF8"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data:rw
+      - ./postgres/init-scripts:/docker-entrypoint-initdb.d:ro
+    networks:
+      - backend
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U uniscrape"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    cap_add:
+      - CHOWN
+      - DAC_OVERRIDE
+    deploy:
+      resources:
+        limits:
+          cpus: '1.5'
+          memory: 1.5G
+        reservations:
+          cpus: '1'
+          memory: 1G
+
+  # Redis Cache & Session Store
+  redis:
+    image: redis:7-alpine
+    container_name: redis
+    restart: unless-stopped
+    hostname: redis
+    command: >
+      redis-server
+      --appendonly yes
+      --maxmemory 512mb
+      --maxmemory-policy allkeys-lru
+      --save 60 1000
+      --requirepass redispass123
+    volumes:
+      - redis_data:/data:rw
+    networks:
+      - backend
+    healthcheck:
+      test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 768M
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+
+  # Chromium/Chrome Headless (CDP for advanced scraping)
+  chrome:
+    image: chromedp/headless-shell:latest
+    container_name: chrome
+    restart: unless-stopped
+    hostname: chrome
+    ports:
+      - "9222:9222"
+    environment:
+      CHROMIUM_ARGS: "--no-sandbox --disable-setuid-sandbox --disable-dev-shm-usage"
+    volumes:
+      - chrome_cache:/tmp/chrome:rw
+    networks:
+      - backend
+    security_opt:
+      - no-new-privileges:true
+      - apparmor=docker-default
+    cap_drop:
+      - ALL
+    cap_add:
+      - NET_BIND_SERVICE
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 2G
+        reservations:
+          cpus: '1'
+          memory: 1G
+    tmpfs:
+      - /tmp:size=1G,mode=1777
+      - /dev/shm:size=1G,mode=1777
+
+  # Nginx Reverse Proxy + SSL Termination
+  nginx:
+    image: nginx:alpine
+    container_name: nginx-proxy
+    restart: unless-stopped
+    hostname: nginx
+    depends_on:
+      - stash
+      - uniscrape
+      - whisparr
+      - liberty
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/conf.d:/etc/nginx/conf.d:ro
+      - ./nginx/ssl:/etc/nginx/ssl:ro
+      - ./nginx/html:/usr/share/nginx/html:ro
+      - /etc/timezone:/etc/timezone:ro
+      - /etc/localtime:/etc/localtime:ro
+    networks:
+      - backend
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:80/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    cap_add:
+      - NET_BIND_SERVICE
+    read_only: true
+    tmpfs:
+      - /var/run:size=64M,mode=1777
+      - /var/cache/nginx:size=256M,mode=1777
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+        reservations:
+          cpus: '0.25'
+          memory: 256M
+
+  # Transmission DHT/Torrent Client (Optional)
+  transmission:
+    image: linuxserver/transmission:latest
+    container_name: transmission
+    restart: unless-stopped
+    hostname: transmission
+    ports:
+      - "9091:9091"
+      - "51413:51413"
+      - "51413:51413/udp"
+    environment:
+      PUID: "1000"
+      PGID: "1000"
+      TZ: UTC
+      TRANSMISSION_WEB_HOME: /transmission-web-control/
+    volumes:
+      - transmission_config:/config:rw
+      - transmission_downloads:/downloads:rw
+    networks:
+      - backend
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9091"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    cap_add:
+      - NET_BIND_SERVICE
+      - CHOWN
+      - DAC_OVERRIDE
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 512M
+        reservations:
+          cpus: '0.5'
+          memory: 256M
+
+  # Portainer (Container Management UI - Optional)
+  portainer:
+    image: portainer/portainer-ce:alpine
+    container_name: portainer
+    restart: unless-stopped
+    hostname: portainer
+    ports:
+      - "8000:8000"
+      - "9000:9000"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - portainer_data:/data:rw
+    networks:
+      - backend
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+        reservations:
+          cpus: '0.25'
+          memory: 256M
+
+volumes:
+  # Stash
+  stash_config:
+    driver: local
+  stash_data:
+    driver: local
+  stash_metadata:
+    driver: local
+  stash_cache:
+    driver: local
+  stash_blobs:
+    driver: local
+  stash_generated:
+    driver: local
+  stash_scrapers:
+    driver: local
+
+  # UniScrape
+  uniscrape_cache:
+    driver: local
+
+  # Whisparr
+  whisparr_config:
+    driver: local
+
+  # Namer
+  namer_config:
+    driver: local
+
+  # Open Liberty
+  liberty_config:
+    driver: local
+  liberty_output:
+    driver: local
+
+  # IMDB Scraper
+  imdb_data:
+    driver: local
+  imdb_logs:
+    driver: local
+
+  # Infrastructure
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+  chrome_cache:
+    driver: local
+  nginx_cache:
+    driver: local
+
+  # Transmission
+  transmission_config:
+    driver: local
+  transmission_downloads:
+    driver: local
+
+  # Portainer
+  portainer_data:
+    driver: local
+
+networks:
+  backend:
+    driver: bridge
+    driver_opts:
+      com.docker.network.bridge.name: br-backend
+      com.docker.driver.mtu: 1500
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
+
+# Usage:
+# docker compose -f docker-compose.unified.yml up -d
+# docker compose -f docker-compose.unified.yml logs -f
+# docker compose -f docker-compose.unified.yml ps

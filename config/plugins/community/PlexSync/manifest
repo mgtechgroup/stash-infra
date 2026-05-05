@@ -1,0 +1,15 @@
+id: PlexSync
+name: Plex Sync
+metadata:
+  description: Refresh Plex metadata when scene updated in Stash. Requires the StashPlexAgent.bundle
+    agent.
+version: 0.1-43feb59
+date: "2025-12-20 01:59:59"
+requires: []
+source_repository: https://stashapp.github.io/CommunityScripts/stable/index.yml
+files:
+- PlexSync.py
+- PlexSync.yml
+- README.md
+- TODO.md
+- requirements.txt

@@ -1,0 +1,63 @@
+[260503 22:46:38] [LN:79] INF: 
+Starting (__file__=/root/.stash/plugins/community/filemonitor/filemonitor.py) (stash.CALLED_AS_STASH_PLUGIN=True) (stash.DEBUG_TRACING=False) (stash.DRY_RUN=False) (stash.PLUGIN_TASK_NAME=start_library_monitor_service)************************************************
+[260503 22:46:38] [LN:162] ERR: You are running this script from within Docker. This is NOT supported.  Run this script in the host machine instead.
+[260503 22:46:38] [LN:163] WRN: For more information on running FileMonitor on host machine see following link:
+ https://github.com/David-Maisonave/Axter-Stash/tree/main/plugins/FileMonitor#Docker
+[260503 22:46:38] [LN:164] WRN: Performing early exit because FileMonitor has to run on the host machine, and can NOT run on Docker directly.
+[260503 22:47:06] [LN:79] INF: 
+Starting (__file__=/root/.stash/plugins/community/filemonitor/filemonitor.py) (stash.CALLED_AS_STASH_PLUGIN=True) (stash.DEBUG_TRACING=False) (stash.DRY_RUN=False) (stash.PLUGIN_TASK_NAME=sync_library_tag)************************************************
+[260503 22:47:06] [LN:162] ERR: You are running this script from within Docker. This is NOT supported.  Run this script in the host machine instead.
+[260503 22:47:06] [LN:163] WRN: For more information on running FileMonitor on host machine see following link:
+ https://github.com/David-Maisonave/Axter-Stash/tree/main/plugins/FileMonitor#Docker
+[260503 22:47:06] [LN:164] WRN: Performing early exit because FileMonitor has to run on the host machine, and can NOT run on Docker directly.
+[260505 02:55:52] [LN:79] INF: 
+Starting (__file__=/root/.stash/plugins/community/filemonitor/filemonitor.py) (stash.CALLED_AS_STASH_PLUGIN=True) (stash.DEBUG_TRACING=False) (stash.DRY_RUN=False) (stash.PLUGIN_TASK_NAME=getFileMonitorRunningStatus)************************************************
+[260505 02:55:52] [LN:193] INF: This Stash instance GQL = http://localhost:9999
+[260505 02:55:52] [LN:1001] INF: FileMonitor is NOT running!!!
+[260505 02:55:52] [LN:1002] INF: getFileMonitorRunningStatus complete
+[260505 03:02:03] [LN:79] INF: 
+Starting (__file__=/root/.stash/plugins/community/filemonitor/filemonitor.py) (stash.CALLED_AS_STASH_PLUGIN=True) (stash.DEBUG_TRACING=False) (stash.DRY_RUN=False) (stash.PLUGIN_TASK_NAME=getFileMonitorRunningStatus)************************************************
+[260505 03:02:03] [LN:193] INF: This Stash instance GQL = http://localhost:9999
+[260505 03:02:03] [LN:1001] INF: FileMonitor is NOT running!!!
+[260505 03:02:03] [LN:1002] INF: getFileMonitorRunningStatus complete
+[260505 06:25:57] [LN:79] INF: 
+Starting (__file__=/root/.stash/plugins/community/filemonitor/filemonitor.py) (stash.CALLED_AS_STASH_PLUGIN=True) (stash.DEBUG_TRACING=False) (stash.DRY_RUN=False) (stash.PLUGIN_TASK_NAME=getFileMonitorRunningStatus)************************************************
+[260505 06:25:57] [LN:193] INF: This Stash instance GQL = http://localhost:9999
+[260505 06:25:57] [LN:1001] INF: FileMonitor is NOT running!!!
+[260505 06:25:57] [LN:1002] INF: getFileMonitorRunningStatus complete
+[260505 06:55:14] [LN:79] INF: 
+Starting (__file__=/root/.stash/plugins/community/filemonitor/filemonitor.py) (stash.CALLED_AS_STASH_PLUGIN=True) (stash.DEBUG_TRACING=False) (stash.DRY_RUN=False) (stash.PLUGIN_TASK_NAME=getFileMonitorRunningStatus)************************************************
+[260505 06:55:14] [LN:193] INF: This Stash instance GQL = http://localhost:9999
+[260505 06:55:14] [LN:1001] INF: FileMonitor is NOT running!!!
+[260505 06:55:14] [LN:1002] INF: getFileMonitorRunningStatus complete
+[260505 07:22:21] [LN:79] INF: 
+Starting (__file__=/root/.stash/plugins/community/filemonitor/filemonitor.py) (stash.CALLED_AS_STASH_PLUGIN=True) (stash.DEBUG_TRACING=False) (stash.DRY_RUN=False) (stash.PLUGIN_TASK_NAME=getFileMonitorRunningStatus)************************************************
+[260505 07:22:21] [LN:193] INF: This Stash instance GQL = http://localhost:9999
+[260505 07:22:21] [LN:1001] INF: FileMonitor is NOT running!!!
+[260505 07:22:21] [LN:1002] INF: getFileMonitorRunningStatus complete
+[260505 07:22:48] [LN:79] INF: 
+Starting (__file__=/root/.stash/plugins/community/filemonitor/filemonitor.py) (stash.CALLED_AS_STASH_PLUGIN=True) (stash.DEBUG_TRACING=False) (stash.DRY_RUN=False) (stash.PLUGIN_TASK_NAME=getFileMonitorRunningStatus)************************************************
+[260505 07:22:48] [LN:193] INF: This Stash instance GQL = http://localhost:9999
+[260505 07:22:48] [LN:1001] INF: FileMonitor is NOT running!!!
+[260505 07:22:48] [LN:1002] INF: getFileMonitorRunningStatus complete
+[260505 07:23:17] [LN:79] INF: 
+Starting (__file__=/root/.stash/plugins/community/filemonitor/filemonitor.py) (stash.CALLED_AS_STASH_PLUGIN=True) (stash.DEBUG_TRACING=False) (stash.DRY_RUN=False) (stash.PLUGIN_TASK_NAME=getFileMonitorRunningStatus)************************************************
+[260505 07:23:17] [LN:193] INF: This Stash instance GQL = http://localhost:9999
+[260505 07:23:17] [LN:1001] INF: FileMonitor is NOT running!!!
+[260505 07:23:17] [LN:1002] INF: getFileMonitorRunningStatus complete
+[260505 07:49:06] [LN:79] INF: 
+Starting (__file__=/root/.stash/plugins/community/filemonitor/filemonitor.py) (stash.CALLED_AS_STASH_PLUGIN=True) (stash.DEBUG_TRACING=False) (stash.DRY_RUN=False) (stash.PLUGIN_TASK_NAME=start_library_monitor_service)************************************************
+[260505 07:49:06] [LN:162] ERR: You are running this script from within Docker. This is NOT supported.  Run this script in the host machine instead.
+[260505 07:49:06] [LN:163] WRN: For more information on running FileMonitor on host machine see following link:
+ https://github.com/David-Maisonave/Axter-Stash/tree/main/plugins/FileMonitor#Docker
+[260505 07:49:06] [LN:164] WRN: Performing early exit because FileMonitor has to run on the host machine, and can NOT run on Docker directly.
+[260505 07:49:35] [LN:79] INF: 
+Starting (__file__=/root/.stash/plugins/community/filemonitor/filemonitor.py) (stash.CALLED_AS_STASH_PLUGIN=True) (stash.DEBUG_TRACING=False) (stash.DRY_RUN=False) (stash.PLUGIN_TASK_NAME=getFileMonitorRunningStatus)************************************************
+[260505 07:49:35] [LN:193] INF: This Stash instance GQL = http://localhost:9999
+[260505 07:49:35] [LN:1001] INF: FileMonitor is NOT running!!!
+[260505 07:49:35] [LN:1002] INF: getFileMonitorRunningStatus complete
+[260505 08:07:05] [LN:79] INF: 
+Starting (__file__=/root/.stash/plugins/community/filemonitor/filemonitor.py) (stash.CALLED_AS_STASH_PLUGIN=True) (stash.DEBUG_TRACING=False) (stash.DRY_RUN=False) (stash.PLUGIN_TASK_NAME=getFileMonitorRunningStatus)************************************************
+[260505 08:07:05] [LN:193] INF: This Stash instance GQL = http://localhost:9999
+[260505 08:07:05] [LN:1001] INF: FileMonitor is NOT running!!!
+[260505 08:07:05] [LN:1002] INF: getFileMonitorRunningStatus complete

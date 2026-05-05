@@ -1,0 +1,12 @@
+id: ThumbPreviews
+name: Thumbnail Previews
+metadata:
+  description: Displays preview videos on thumbnail cards.
+version: 0.1-43feb59
+date: "2025-12-20 01:59:59"
+requires: []
+source_repository: https://stashapp.github.io/CommunityScripts/stable/index.yml
+files:
+- ThumbPreviews.js
+- README.md
+- ThumbPreviews.yml

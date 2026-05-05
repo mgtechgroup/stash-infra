@@ -1,0 +1,14 @@
+id: markerDeleteButton
+name: Marker Delete Button
+metadata:
+  description: Adds a delete button to entries on the Markers page and on the Scene
+    page.
+version: 0.2-43feb59
+date: "2025-12-20 01:59:59"
+requires: []
+source_repository: https://stashapp.github.io/CommunityScripts/stable/index.yml
+files:
+- README.md
+- markerDeleteButton.js
+- markerDeleteButton.css
+- markerDeleteButton.yml

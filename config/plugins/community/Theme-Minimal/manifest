@@ -1,0 +1,31 @@
+id: Theme-Minimal
+name: Theme - Minimal
+metadata:
+  description: Minimal Theme for Stash
+version: 0.2.8-43feb59
+date: "2025-12-20 01:59:59"
+requires: []
+source_repository: https://stashapp.github.io/CommunityScripts/stable/index.yml
+files:
+- modal.css
+- skeleton.css
+- stats.css
+- shared.css
+- studio-tagger.css
+- _theme.css
+- README.md
+- player.css
+- assets/Outfit-VariableFont_wght.woff2
+- popover.css
+- scenes.css
+- _scrollbars.css
+- markers-wall.css
+- nav-bar.css
+- reset-scrollbars.js
+- inputs.css
+- index.css
+- studio-performer-tagger.css
+- scene-tagger.css
+- Theme-Minimal.yml
+- settings.css
+- studio.css

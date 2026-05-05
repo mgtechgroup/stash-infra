@@ -1,0 +1,206 @@
+api_key: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1aWQiOiJzdGFyZGV2c3Rhc2giLCJzdWIiOiJBUElLZXkiLCJpYXQiOjE3Nzc5NjQ4MzR9.vvincOr6HmaD9l67wywJfOdlPWywYDeScm72ZENOkKA
+autostart_video: true
+blobs_path: C:\stash\blobs
+cache: C:\stash\cache
+calculate_md5: false
+chrome_cdp_path: http://localhost:9222
+create_galleries_from_folders: true
+create_image_clip_from_videos: true
+dangerous_allow_public_without_auth: "false"
+database: C:\stash\config\stash-go.sqlite
+dlna:
+    default_enabled: true
+    server_name: Stardevstash
+ffmpeg:
+    hardware_acceleration: true
+ffmpeg_path: ""
+ffprobe_path: ""
+gallery_cover_regex: (poster|cover|folder|board)\.[^\.]+$
+generated: C:\stash\generated
+host: 0.0.0.0
+image_lightbox:
+    display_mode: ORIGINAL
+    scroll_attempts_before_change: 0
+    slideshow_delay: 5
+jwt_secret_key: b805e79961c8aa1d34d42f17c139a09e382a15bd91245c36c682e3dafda5fb11
+log_access: true
+log_file: C:\stash\config\stash.log
+log_level: Info
+maximum_sprites: 500
+metadata: C:\stash\metadata
+minimum_sprites: 10
+no_proxy: localhost,127.0.0.1,192.168.0.0/16,10.0.0.0/8,172.16.0.0/12
+nobrowser: true
+notifications_enabled: true
+parallel_tasks: 1
+password: $2a$04$BB090AmQbR/Y/aefTfGSg.9SbfuR8ODElh0UYk83VIc7bduZmzMMO
+plugins:
+    package_sources:
+        - localpath: community
+          name: Community (stable)
+          url: https://stashapp.github.io/CommunityScripts/stable/index.yml
+    settings:
+        AIOverhaul:
+            backend_base_url: http://localhost:4153
+            capture_events: true
+            shared_api_key: ""
+        BulkImageScrape:
+            CreateMissingMovies: true
+            CreateMissingPerformers: true
+            CreateMissingStudios: true
+        DupFileManager:
+            mergeDupFilename: true
+plugins_path: /root/.stash/plugins
+port: 9999
+preview_audio: true
+preview_exclude_end: "0"
+preview_exclude_start: "0"
+preview_segment_duration: 0.75
+preview_segments: 12
+python_path: C:\Python313\python.exe
+scraper_user_agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:136.0) Gecko/20100101 Firefox/136.0
+scrapers:
+    package_sources:
+        - localpath: community
+          name: Community (stable)
+          url: https://stashapp.github.io/CommunityScrapers/stable/index.yml
+scrapers_path: C:\stash\scrapers
+security_tripwire_accessed_from_public_internet: ""
+sequential_scanning: false
+session_store_key: af6389343060ec663f9992650d2321806a3d8fb879502ea071f7a9d1a4bac81e
+show_one_time_moved_notification: true
+show_studio_as_text: true
+sound_on_preview: true
+sprite_interval: 30
+sprite_screenshot_width: 160
+stash:
+    - excludeimage: false
+      excludevideo: false
+      path: K:\Torrents\Stash Media Index
+    - excludeimage: false
+      excludevideo: false
+      path: H:\My Drive\Stremio-Jellyfin-Media-Folder
+    - excludeimage: false
+      excludevideo: false
+      path: A:\STARDEVMGXVSAI
+    - excludeimage: false
+      excludevideo: false
+      path: C:\Users\AzielMelek\Videos
+stash_box_endpoints: []
+stash_boxes:
+    - apikey: vGmCEXDdafDq3AfLhQaZ21rmXU43RTppYQoUFMkc5dbbed9e
+      endpoint: https://theporndb.net/graphql
+      maxrequestsperminute: 0
+      name: ThePornDB -https://theporndb.net/
+    - apikey: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1aWQiOiJzdGFyZGV2c3Rhc2giLCJzdWIiOiJBUElLZXkiLCJpYXQiOjE3Nzc5NjQ4MzR9.vvincOr6HmaD9l67wywJfOdlPWywYDeScm72ZENOkKA
+      endpoint: https://stashdb.org/graphql
+      maxrequestsperminute: 0
+      name: StashDB-https://stashdb.org/
+    - apikey: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1aWQiOiJhOWZiNjMwYi1lODM1LTQ1NjUtOTRjYi1kODdiNTc5NWFlN2YiLCJzdWIiOiJBUElLZXkiLCJpYXQiOjE3Nzc5NjM0NTB9.GkaEHE0B3vTltjTRvWVJiD8jDD06D0R2OGdFNx-CxJc
+      endpoint: https://pmvstash.org/graphql
+      maxrequestsperminute: 0
+      name: PMV Stash-https://pmvstash.org/
+theme_color: '#202b33'
+ui:
+    abbreviateCounters: true
+    advancedMode: true
+    alwaysStartFromBeginning: true
+    compactExpandedDetails: true
+    enableChromecast: true
+    enableMovieBackgroundImage: true
+    enablePerformerBackgroundImage: true
+    enableStudioBackgroundImage: true
+    enableTagBackgroundImage: true
+    frontPageContent:
+        - __typename: CustomFilter
+          direction: DESC
+          message:
+            id: recently_released_objects
+            values:
+                objects: Scenes
+          mode: SCENES
+          sortBy: date
+        - __typename: CustomFilter
+          direction: DESC
+          message:
+            id: recently_added_objects
+            values:
+                objects: Studios
+          mode: STUDIOS
+          sortBy: created_at
+        - __typename: CustomFilter
+          direction: DESC
+          message:
+            id: recently_released_objects
+            values:
+                objects: Groups
+          mode: GROUPS
+          sortBy: date
+        - __typename: CustomFilter
+          direction: DESC
+          message:
+            id: recently_added_objects
+            values:
+                objects: Performers
+          mode: PERFORMERS
+          sortBy: created_at
+        - __typename: CustomFilter
+          direction: DESC
+          message:
+            id: recently_released_objects
+            values:
+                objects: Galleries
+          mode: GALLERIES
+          sortBy: date
+        - __typename: CustomFilter
+          direction: DESC
+          message:
+            id: recently_added_objects
+            values:
+                objects: Galleries
+          mode: GALLERIES
+          sortBy: created_at
+        - __typename: CustomFilter
+          direction: DESC
+          message:
+            id: recently_added_objects
+            values:
+                objects: Studios
+          mode: STUDIOS
+          sortBy: created_at
+        - __typename: CustomFilter
+          direction: DESC
+          message:
+            id: recently_added_objects
+            values:
+                objects: Performers
+          mode: PERFORMERS
+          sortBy: created_at
+        - __typename: CustomFilter
+          direction: DESC
+          message:
+            id: recently_added_objects
+            values:
+                objects: Groups
+          mode: GROUPS
+          sortBy: created_at
+    lastNoteSeen: 20251026
+    showChildStudioContent: true
+    showChildTagContent: true
+    showLinksOnPerformerCard: true
+    showStudioText: true
+    taskDefaults:
+        scan:
+            rescan: true
+            scanGenerateClipPreviews: true
+            scanGenerateCovers: true
+            scanGenerateImagePhashes: true
+            scanGenerateImagePreviews: true
+            scanGeneratePhashes: true
+            scanGeneratePreviews: true
+            scanGenerateSprites: true
+            scanGenerateThumbnails: true
+use_custom_sprite_interval: false
+username: stardevstash
+video_file_naming_algorithm: OSHASH
+write_image_thumbnails: true

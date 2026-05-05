@@ -1,0 +1,13 @@
+id: e621_tagger
+name: e621_tagger
+metadata:
+  description: Finding images and videos on e621 and tagging them.
+version: 0.6-27a72ab
+date: "2026-05-02 13:29:03"
+requires: []
+source_repository: https://stashapp.github.io/CommunityScripts/stable/index.yml
+files:
+- README.md
+- e621_tagger.py
+- e621_tagger.yml
+- requirements.txt

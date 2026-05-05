@@ -1,0 +1,18 @@
+id: BulkImageScrape
+name: Bulk Image Scrape
+metadata:
+  description: Apply an image scraper to all images
+version: 0.3.4-9374193
+date: "2025-12-22 10:38:23"
+requires: []
+source_repository: https://stashapp.github.io/CommunityScripts/stable/index.yml
+files:
+- res/settings.png
+- res/valid_scraper_id.png
+- res/task.png
+- res/running.png
+- res/valid_image_scraper.png
+- README.md
+- bulkImageScrape.py
+- BulkImageScrape.yml
+- requirements.txt

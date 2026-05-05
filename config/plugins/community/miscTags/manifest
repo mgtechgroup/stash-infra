@@ -1,0 +1,12 @@
+id: miscTags
+name: Misc Tags
+metadata:
+  description: Add extra tags for VR and other ues
+version: 0.4.1-43feb59
+date: "2025-12-20 01:59:59"
+requires: []
+source_repository: https://stashapp.github.io/CommunityScripts/stable/index.yml
+files:
+- README.md
+- miscTags.yml
+- miscTags.py

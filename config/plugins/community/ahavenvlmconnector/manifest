@@ -1,0 +1,27 @@
+id: ahavenvlmconnector
+name: Haven VLM Connector
+metadata:
+  description: Tag videos with Vision-Language Models using any OpenAI-compatible
+    VLM endpoint
+version: 1.1.1-eff9999
+date: "2026-04-06 11:26:40"
+requires: []
+source_repository: https://stashapp.github.io/CommunityScripts/stable/index.yml
+files:
+- haven_vlm_engine.py
+- CHANGELOG.md
+- ahavenvlmconnector.yml
+- haven_vlm_config.py
+- run_tests.py
+- test_dependency_management.py
+- haven_vlm_connector.py
+- test_haven_vlm_engine.py
+- test_haven_vlm_utility.py
+- test_haven_media_handler.py
+- test_haven_vlm_connector.py
+- haven_vlm_utility.py
+- README.md
+- haven_media_handler.py
+- test_haven_vlm_config.py
+- exit_tracker.py
+- requirements.txt

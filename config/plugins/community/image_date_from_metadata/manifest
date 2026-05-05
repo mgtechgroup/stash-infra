@@ -1,0 +1,12 @@
+id: image_date_from_metadata
+name: Image Date From Metadata
+metadata:
+  description: Find date in image or clip metadata
+version: 1.0.0-43feb59
+date: "2025-12-20 01:59:59"
+requires: []
+source_repository: https://stashapp.github.io/CommunityScripts/stable/index.yml
+files:
+- image_date_from_metadata.py
+- image_date_from_metadata.yml
+- README.md

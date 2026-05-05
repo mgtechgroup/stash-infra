@@ -1,0 +1,12 @@
+id: Theme-Night
+name: Theme - Night
+metadata:
+  description: Night Theme for Stash (unknown author)
+version: 0.1-43feb59
+date: "2025-12-20 01:59:59"
+requires: []
+source_repository: https://stashapp.github.io/CommunityScripts/stable/index.yml
+files:
+- README.md
+- Theme-Night.yml
+- Theme-Night.css

@@ -1,0 +1,13 @@
+id: tagCopyPaste
+name: tagCopyPaste
+metadata:
+  description: Adds Copy/Paste buttons to Tags field.
+version: 0.5-0587f0d
+date: "2026-02-19 14:37:15"
+requires: []
+source_repository: https://stashapp.github.io/CommunityScripts/stable/index.yml
+files:
+- tagCopyPaste.yml
+- tagCopyPaste.css
+- README.md
+- tagCopyPaste.js

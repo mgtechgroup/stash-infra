@@ -1,0 +1,12 @@
+id: VideoBanner
+name: Video Banner
+metadata:
+  description: Displays random generated preview videos in the detail page banner.
+version: 0.1.1-43feb59
+date: "2025-12-20 01:59:59"
+requires: []
+source_repository: https://stashapp.github.io/CommunityScripts/stable/index.yml
+files:
+- README.md
+- VideoBanner.js
+- VideoBanner.yml

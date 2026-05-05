@@ -1,0 +1,12 @@
+id: Theme-Plex
+name: Theme - Plex
+metadata:
+  description: Plex Theme for Stash by Fidelio 2020
+version: 1.0.5-43feb59
+date: "2025-12-20 01:59:59"
+requires: []
+source_repository: https://stashapp.github.io/CommunityScripts/stable/index.yml
+files:
+- Theme-Plex.css
+- Theme-Plex.yml
+- README.md

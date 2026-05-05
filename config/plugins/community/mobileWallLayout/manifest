@@ -1,0 +1,12 @@
+id: mobileWallLayout
+name: scrollFeed
+metadata:
+  description: ""
+version: 3.0-afc8208
+date: "2026-04-22 08:13:28"
+requires: []
+source_repository: https://stashapp.github.io/CommunityScripts/stable/index.yml
+files:
+- mobileWallLayout.js
+- README.md
+- mobileWallLayout.yml

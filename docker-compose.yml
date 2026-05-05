@@ -1,0 +1,129 @@
+# UniScrape Universal Docker Stack
+# All services in one compose file
+services:
+
+  # === Core Scraping Server ===
+  uniscrape:
+    build: ./UniversalScraper/docker
+    image: ghcr.io/mgtechgroup/uniscrape:latest
+    container_name: uniscrape
+    restart: unless-stopped
+    ports:
+      - "9876:8085"
+    environment:
+      - PORT=8085
+      - NODE_ENV=production
+      - SCRAPERS_PATH=/scrapers
+    volumes:
+      - C:/stash/scrapers:/scrapers:ro
+      - D:/Media:/media:ro
+      - D:/Downloads:/downloads:ro
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "http://localhost:8085/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # === Stash Media Manager ===
+  stash:
+    image: stashapp/stash:latest
+    container_name: stash
+    restart: unless-stopped
+    ports:
+      - "9999:9999"
+    environment:
+      - STASH_STASH=/data
+      - STASH_GENERATED=/generated
+      - STASH_METADATA=/metadata
+      - STASH_CACHE=/cache
+      - STASH_BLOBS=/blobs
+    volumes:
+      - C:/stash/config:/root/.stash
+      - C:/stash/metadata:/metadata
+      - C:/stash/blobs:/blobs
+      - C:/stash/cache:/cache
+      - C:/stash/generated:/generated
+      - C:/stash/scrapers:/scrapers:ro
+
+  # === Chrome Headless (for CDP scrapers) ===
+  chrome:
+    image: chromedp/headless-shell:latest
+    container_name: uniscrape-chrome
+    restart: unless-stopped
+    ports:
+      - "9222:9222"
+
+  # === Nginx Reverse Proxy (SSL termination) ===
+  nginx:
+    image: nginx:alpine
+    container_name: uniscrape-nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - C:/stash/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - C:/stash/nginx/conf.d:/etc/nginx/conf.d:ro
+      - C:/stash/nginx/ssl:/etc/nginx/ssl:ro
+      - C:/stash/nginx/www:/var/www:ro
+    depends_on:
+      - uniscrape
+      - stash
+
+  # === Redis (caching & sessions) ===
+  redis:
+    image: redis:7-alpine
+    container_name: uniscrape-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - C:/stash/redis:/data
+    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
+
+  # === PostgreSQL ===
+  postgres:
+    image: postgres:16-alpine
+    container_name: uniscrape-postgres
+    restart: unless-stopped
+    environment:
+      - POSTGRES_DB=uniscrape
+      - POSTGRES_USER=uniscrape
+      - POSTGRES_PASSWORD=uniscrape
+    ports:
+      - "5432:5432"
+    volumes:
+      - C:/stash/postgres:/var/lib/postgresql/data
+
+  # === Transmission (DHT/Torrent) ===
+  transmission:
+    image: linuxserver/transmission:latest
+    container_name: uniscrape-dht
+    restart: unless-stopped
+    ports:
+      - "9091:9091"
+      - "51413:51413"
+      - "51413:51413/udp"
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=UTC
+    volumes:
+      - C:/stash/transmission-config:/config
+      - D:/Downloads/torrents:/downloads
+
+  # === Optional: DHT node for P2P search ===
+  dht-node:
+    image: linuxserver/transmission:latest
+    container_name: uniscrape-dht
+    restart: unless-stopped
+    ports:
+      - "6881:6881"
+      - "6881:6881/udp"
+    volumes:
+      - C:/stash/dht-config:/config
+
+networks:
+  default:
+    name: uniscrape-net
+    driver: bridge
