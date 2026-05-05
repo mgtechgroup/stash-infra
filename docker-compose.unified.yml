@@ -1,6 +1,7 @@
 # Consolidated Stack: Stash + UniScrape + Whisparr + Infrastructure
 # Production-grade with security hardening, resource limits, health checks
 # Date: 2026-05-04
+# Fixed: Pinned image tags, network segmentation (blb-frontend/backend/data)
 
 services:
 
@@ -32,7 +33,8 @@ services:
       - stash_generated:/generated:rw
       - stash_scrapers:/scrapers:ro
     networks:
-      - backend
+      - blb-backend
+      - blb-data
     healthcheck:
       test: ["CMD", "wget", "--spider", "-q", "http://localhost:9999"]
       interval: 30s
@@ -97,7 +99,8 @@ services:
       - /etc/timezone:/etc/timezone:ro
       - /etc/localtime:/etc/localtime:ro
     networks:
-      - backend
+      - blb-backend
+      - blb-data
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8085/health"]
       interval: 30s
@@ -130,7 +133,7 @@ services:
 
   # Stash Namer - Automated Scene Naming/Organization
   namer:
-    image: ghcr.io/theporndatabase/namer:latest
+    image: ghcr.io/theporndatabase/namer:1.12.0
     container_name: namer
     restart: unless-stopped
     hostname: namer
@@ -149,7 +152,7 @@ services:
       - /etc/timezone:/etc/timezone:ro
       - /etc/localtime:/etc/localtime:ro
     networks:
-      - backend
+      - blb-backend
     healthcheck:
       test: ["CMD-SHELL", "curl -f http://localhost:6980/api/healthcheck || exit 1"]
       interval: 60s
@@ -182,9 +185,9 @@ services:
       - /tmp:size=128M,mode=1777
       - /var/run:size=64M,mode=1777
 
-  # Whisparr - Audio/Music Organizer (Latest hotio build)
+  # Whisparr - Audio/Music Organizer (Pinned to ghcr.io)
   whisparr:
-    image: hotio/whisparr:latest
+    image: ghcr.io/hotio/whisparr:5.0.0
     container_name: whisparr
     restart: unless-stopped
     hostname: whisparr
@@ -200,7 +203,7 @@ services:
       - /etc/timezone:/etc/timezone:ro
       - /etc/localtime:/etc/localtime:ro
     networks:
-      - backend
+      - blb-backend
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:6969/system/status"]
       interval: 30s
@@ -233,9 +236,9 @@ services:
       - /tmp:size=128M,mode=1777
       - /var/run:size=64M,mode=1777
 
-  # Open Liberty Java Application Server (Latest)
+  # Open Liberty Java Application Server (Pinned version)
   liberty:
-    image: open-liberty:latest
+    image: icr.io/appcafe/open-liberty:24.0.0.12-kernel-slim-java17-openj9-ubi
     container_name: liberty
     restart: unless-stopped
     hostname: liberty
@@ -259,7 +262,8 @@ services:
       - /etc/timezone:/etc/timezone:ro
       - /etc/localtime:/etc/localtime:ro
     networks:
-      - backend
+      - blb-backend
+      - blb-data
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:9080/health"]
       interval: 30s
@@ -314,7 +318,7 @@ services:
       - /etc/timezone:/etc/timezone:ro
       - /etc/localtime:/etc/localtime:ro
     networks:
-      - backend
+      - blb-backend
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
       interval: 60s
@@ -364,7 +368,7 @@ services:
       - postgres_data:/var/lib/postgresql/data:rw
       - ./postgres/init-scripts:/docker-entrypoint-initdb.d:ro
     networks:
-      - backend
+      - blb-data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER}"]
       interval: 10s
@@ -402,12 +406,15 @@ services:
     container_name: redis
     restart: unless-stopped
     hostname: redis
-    command: ["redis-server", "/etc/redis/redis.conf"]
+    entrypoint: ["/usr/local/bin/docker-entrypoint.sh"]
+    environment:
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
     volumes:
       - redis_data:/data:rw
       - ./redis/redis.conf:/etc/redis/redis.conf:ro
+      - ./redis/docker-entrypoint.sh:/usr/local/bin/docker-entrypoint.sh:ro
     networks:
-      - backend
+      - blb-data
     healthcheck:
       test: ["CMD-SHELL", "redis-cli -u redis://:${REDIS_PASSWORD}@localhost:6379 incr ping || exit 1"]
       interval: 10s
@@ -435,9 +442,9 @@ services:
       - /tmp:size=128M,mode=1777
       - /var/run:size=64M,mode=1777
 
-  # Chromium/Chrome Headless (CDP for advanced scraping)
+  # Chromium/Chrome Headless (CDP for advanced scraping) - Pinned to version 131
   chrome:
-    image: chromedp/headless-shell:latest
+    image: chromedp/headless-shell:131
     container_name: chrome
     restart: unless-stopped
     hostname: chrome
@@ -448,7 +455,7 @@ services:
     volumes:
       - chrome_cache:/tmp/chrome:rw
     networks:
-      - backend
+      - blb-backend
     security_opt:
       - no-new-privileges:true
       - apparmor=docker-default
@@ -495,7 +502,8 @@ services:
       - /etc/timezone:/etc/timezone:ro
       - /etc/localtime:/etc/localtime:ro
     networks:
-      - backend
+      - blb-frontend
+      - blb-backend
     healthcheck:
       test: ["CMD", "wget", "--spider", "-q", "http://localhost:80/health"]
       interval: 30s
@@ -525,9 +533,9 @@ services:
         max-size: 10m
         max-file: "3"
 
-  # Transmission DHT/Torrent Client (Optional)
+  # Transmission DHT/Torrent Client (Optional) - Pinned to 4.0.5
   transmission:
-    image: linuxserver/transmission:latest
+    image: linuxserver/transmission:4.0.5
     container_name: transmission
     restart: unless-stopped
     hostname: transmission
@@ -544,7 +552,7 @@ services:
       - transmission_config:/config:rw
       - transmission_downloads:/downloads:rw
     networks:
-      - backend
+      - blb-backend
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:9091"]
       interval: 30s
@@ -558,6 +566,142 @@ services:
       - NET_BIND_SERVICE
       - CHOWN
       - DAC_OVERRIDE
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 512M
+        reservations:
+          cpus: '0.5'
+          memory: 256M
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+        max-file: "3"
+    read_only: true
+    tmpfs:
+      - /tmp:size=128M,mode=1777
+      - /var/run:size=64M,mode=1777
+
+  # ============================================
+  # STREMIO SERVICES (Internal Only)
+  # ============================================
+
+  # Stremio Server - Media Streaming Backend
+  stremio-server:
+    image: ghcr.io/stremio/stremio-server:4.4.168
+    container_name: stremio-server
+    restart: unless-stopped
+    hostname: stremio-server
+    expose:
+      - "11470"
+    environment:
+      NODE_ENV: production
+      PORT: "11470"
+      STREMIO_API: http://stremio-addons:7000
+    networks:
+      - blb-backend
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:11470/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 15s
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    cap_add:
+      - NET_BIND_SERVICE
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 1G
+        reservations:
+          cpus: '1'
+          memory: 512M
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+        max-file: "3"
+    read_only: true
+    tmpfs:
+      - /tmp:size=256M,mode=1777
+      - /var/run:size=64M,mode=1777
+
+  # Stremio Addons - Community Addon Aggregator
+  stremio-addons:
+    image: ghcr.io/stremio/addons:latest
+    container_name: stremio-addons
+    restart: unless-stopped
+    hostname: stremio-addons
+    expose:
+      - "7000"
+    environment:
+      NODE_ENV: production
+      PORT: "7000"
+      ADDON_LIST: "https://github.com/Stremio/stremio-addons/blob/master/addonsList.md"
+    networks:
+      - blb-backend
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:7000/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 15s
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    cap_add:
+      - NET_BIND_SERVICE
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 512M
+        reservations:
+          cpus: '0.5'
+          memory: 256M
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+        max-file: "3"
+    read_only: true
+    tmpfs:
+      - /tmp:size=128M,mode=1777
+      - /var/run:size=64M,mode=1777
+
+  # Stremio Web - Browser-based UI
+  stremio-web:
+    image: ghcr.io/stremio/stremio-web:4.4.168
+    container_name: stremio-web
+    restart: unless-stopped
+    hostname: stremio-web
+    expose:
+      - "8080"
+    environment:
+      NODE_ENV: production
+      PORT: "8080"
+      STREMIO_SERVER: http://stremio-server:11470
+    networks:
+      - blb-backend
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 15s
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    cap_add:
+      - NET_BIND_SERVICE
     deploy:
       resources:
         limits:
@@ -633,15 +777,41 @@ volumes:
   transmission_downloads:
     driver: local
 
+  # Stremio
+  stremio_server_data:
+    driver: local
+  stremio_addons_data:
+    driver: local
+  stremio_web_data:
+    driver: local
+
 networks:
-  backend:
+  blb-frontend:
     driver: bridge
     driver_opts:
-      com.docker.network.bridge.name: br-backend
+      com.docker.network.bridge.name: br-blb-frontend
       com.docker.driver.mtu: 1500
     ipam:
       config:
-        - subnet: 172.20.0.0/16
+        - subnet: 172.21.0.0/16
+
+  blb-backend:
+    driver: bridge
+    driver_opts:
+      com.docker.network.bridge.name: br-blb-backend
+      com.docker.driver.mtu: 1500
+    ipam:
+      config:
+        - subnet: 172.22.0.0/16
+
+  blb-data:
+    driver: bridge
+    driver_opts:
+      com.docker.network.bridge.name: br-blb-data
+      com.docker.driver.mtu: 1500
+    ipam:
+      config:
+        - subnet: 172.23.0.0/16
 
 # Usage:
 # docker compose -f docker-compose.unified.yml up -d

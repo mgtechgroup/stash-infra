@@ -1,0 +1,91 @@
+FINAL SECURITY AUDIT REPORT
+Date: 2026-05-05
+Audited Files:
+1. C:\stash\docker-compose.unified.yml
+2. C:\stash\redis\redis.conf
+3. C:\stash\postgres\init-scripts\01-init.sql
+4. C:\stash\nginx\nginx.conf
+5. C:\stash\nginx\conf.d\default.conf
+6. C:\stash\.env
+7. C:\OmniScraper\src\middleware\index.js
+8. C:\OmniScraper\src\index.js
+9. C:\stash\scripts\certbot-setup.sh
+
+CATEGORY SCORES (0-10):
+
+1. No Hardcoded Secrets: 7/10
+   - FIXED: Docker Compose uses environment variables for credentials; OmniScraper auth relies on config from env; .env externalizes secrets.
+   - REMAINING:
+     - postgres/init-scripts/01-init.sql contains hardcoded passwords for database users (lines 3-4)
+     - redis/redis.conf uses ${REDIS_PASSWORD} which is not expanded (Redis does not support env var interpolation in config)
+     - .env file risks exposure if committed to version control
+
+2. Docker Security: 6/10
+   - FIXED: All services use no-new-privileges, cap_drop: ALL, resource limits, logging policies, healthchecks, read-only for most services.
+   - REMAINING:
+     - Multiple services use unpinned :latest image tags (chrome, imdb-scraper, liberty, transmission, whisparr, namer)
+     - Chrome service lacks read_only: true
+     - Unnecessary host port mappings for backend services expose services directly bypassing nginx
+
+3. Network Isolation: 7/10
+   - FIXED: Custom bridge network (backend) with defined subnet; no use of default Docker network.
+   - REMAINING:
+     - No network segmentation: databases (postgres, redis) and chrome share the same network as all other services, allowing lateral movement if any service is compromised
+
+4. SSL/TLS: 7/10
+   - FIXED: HTTP→HTTPS redirect, HSTS header, TLS 1.2/1.3 enabled, ssl_ciphers configured, Certbot setup script for Let's Encrypt.
+   - REMAINING:
+     - Certbot setup script is Linux-only (incompatible with Windows host environment)
+     - Default nginx config uses self-signed SSL certificates
+     - ssl_ciphers use broad HIGH category instead of specific strong cipher suite
+
+5. Nginx Hardening: 8/10
+   - FIXED: Server tokens disabled, security headers (X-Frame-Options, CSP, etc.), rate limiting, client_max_body_size, proxy headers configured.
+   - REMAINING:
+     - Content-Security-Policy allows 'unsafe-inline' for script-src and style-src
+     - No additional authentication layer on nginx for backend services
+
+6. Database Security: 7/10
+   - FIXED: Row Level Security enabled, audit trigger function, Redis protected-mode, rename-command for dangerous Redis commands, password hashing for users table, least-privilege grants.
+   - REMAINING:
+     - Hardcoded database user passwords in postgres init script
+     - Redis requirepass not properly configured (unexpanded env var)
+     - Postgres audit triggers not applied to tables (no audit logs generated)
+
+7. Input Validation: 5/10
+   - FIXED: Ajv validation middleware exists, express.json limit set, basic query param checks for some routes.
+   - REMAINING:
+     - Validation middleware not applied to most API routes
+     - No schema validation for query parameters or URL paths
+     - No bounds checking for numeric inputs (limit, offset)
+
+8. Authentication: 6/10
+   - FIXED: All OmniScraper API routes require API key auth via middleware.
+   - REMAINING:
+     - Single static API key (no rotation, no per-user keys)
+     - API key allowed via query parameter (logged in URLs)
+     - Postgres api_keys table unused; auth relies on single config value
+
+9. Logging & Audit: 7/10
+   - FIXED: Docker json-file logging, OmniScraper request/error logging, nginx custom log format, postgres audit function.
+   - REMAINING:
+     - Postgres audit triggers not created on tables (no audit logs written)
+     - Potential sensitive data logging (API keys in query params)
+     - No centralized log aggregation
+
+10. Error Handling: 8/10
+    - FIXED: Centralized error handler, no stack traces exposed to clients, async route error propagation, process-level error handlers, nginx error pages.
+    - REMAINING:
+      - SSE endpoint lacks error handling for stream failures
+      - No structured error response for all edge cases
+
+TOTAL SCORE: 68/100
+PASS STATUS: FAIL (requires >=90/100)
+
+CRITICAL REMAINING ISSUES:
+1. Hardcoded database passwords in postgres init script
+2. Unpinned Docker image tags (latest) across most services
+3. No network segmentation for databases
+4. Input validation not applied to most API routes
+5. Windows-incompatible Certbot SSL setup
+6. Postgres audit triggers not configured

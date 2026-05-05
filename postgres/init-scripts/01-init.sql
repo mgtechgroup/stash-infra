@@ -1,7 +1,11 @@
+-- Consolidated init script for UniScrape database
+-- Uses psql variable substitution with :'VAR' syntax
+-- Variables are passed via psql -v flags by the entrypoint script
+
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
-CREATE USER uniscrape WITH PASSWORD 'uniscrape_secure_password_2026';
-CREATE USER staging_user WITH PASSWORD 'staging_readonly_2026';
+CREATE USER uniscrape WITH PASSWORD :'UNISCRAPE_PASSWORD';
+CREATE USER staging_user WITH PASSWORD :'STAGING_PASSWORD';
 
 CREATE SCHEMA IF NOT EXISTS staging;
 CREATE SCHEMA IF NOT EXISTS analytics;
@@ -111,3 +115,20 @@ CREATE TABLE IF NOT EXISTS analytics.audit_log (
     new_data JSONB,
     changed_at TIMESTAMP WITH TIME ZONE
 );
+
+-- Audit triggers on all tables
+CREATE TRIGGER audit_users
+    AFTER INSERT OR UPDATE OR DELETE ON users
+    FOR EACH ROW EXECUTE FUNCTION audit_trigger_func();
+
+CREATE TRIGGER audit_scrape_jobs
+    AFTER INSERT OR UPDATE OR DELETE ON scrape_jobs
+    FOR EACH ROW EXECUTE FUNCTION audit_trigger_func();
+
+CREATE TRIGGER audit_scrape_results
+    AFTER INSERT OR UPDATE OR DELETE ON scrape_results
+    FOR EACH ROW EXECUTE FUNCTION audit_trigger_func();
+
+CREATE TRIGGER audit_listening_stats
+    AFTER INSERT OR UPDATE OR DELETE ON listening_stats
+    FOR EACH ROW EXECUTE FUNCTION audit_trigger_func();
