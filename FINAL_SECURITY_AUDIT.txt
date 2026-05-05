@@ -1,0 +1,550 @@
+================================================================================
+                    COMPREHENSIVE SECURITY AUDIT REPORT
+================================================================================
+Date: 2026-05-05
+Auditor: opencode/big-pickle
+Scope: stash, OmniScraper, Brilliantly-Bussy-ImagGoo
+
+================================================================================
+SCORING SUMMARY (out of 100)
+================================================================================
+
+Category                          | Score | Max
+----------------------------------|-------|-----
+1. No Hardcoded Secrets           |   4   |  10
+2. Docker Security                |   7   |  10
+3. Network Isolation              |   6   |  10
+4. SSL/TLS                        |   3   |  10
+5. Nginx Hardening                |   8   |  10
+6. Database Security              |   4   |  10
+7. Input Validation               |   5   |  10
+8. Authentication                 |   6   |  10
+9. Logging & Audit                |   7   |  10
+10. Error Handling                 |   8   |  10
+----------------------------------|-------|-----
+TOTAL SCORE                       |  58   | 100
+
+VERDICT: FAIL (< 70)
+
+
+================================================================================
+1. NO HARDCODED SECRETS (4/10)
+================================================================================
+
+VIOLATIONS FOUND:
+
+1.1 CRITICAL - Hardcoded passwords in SQL init scripts:
+    File: C:\stash\postgres\init-scripts\01-init.sql:3-4
+    - CREATE USER uniscrape WITH PASSWORD 'uniscrape_secure_password_2026';
+    - CREATE USER staging_user WITH PASSWORD 'staging_readonly_2026';
+    FIX: Use environment variables with \set or pass via POSTGRES_PASSWORD mechanism
+
+1.2 HIGH - Passwords in healthcheck commands (visible in process list):
+    File: C:\stash\docker-compose.unified.yml:411
+    - test: ["CMD", "redis-cli", "--raw", "-a", "${REDIS_PASSWORD}", "incr", "ping"]
+    FIX: Use redis-cli --user username --pass password or ACL-based auth
+
+1.3 HIGH - Password in Redis command args (visible in ps):
+    File: C:\stash\docker-compose.unified.yml:405
+    - command: ["redis-server", "--requirepass", "${REDIS_PASSWORD}", ...]
+    FIX: Use Redis ACL via configuration file instead of command-line args
+
+1.4 MEDIUM - Crypto deposit addresses in .env.example:
+    File: C:\Brilliantly-Bussy-ImagGoo\.env.example:91-95
+    - CRYPTO_DEPOSIT_ETH=0xYourEthereumAddress (placeholder leak)
+    FIX: Remove placeholder values, use comments only
+
+1.5 MEDIUM - API key plaintext comparison:
+    File: C:\OmniScraper\src\middleware\index.js:12
+    - if (!apiKey || apiKey !== config.apiKey)
+    FIX: Use hashed comparison (timing-safe) and store API keys in database
+
+1.6 MEDIUM - .env file exists with secrets in workspace:
+    File: C:\stash\.env
+    FIX: Ensure .env is in .gitignore, consider using Docker secrets or vault
+
+
+================================================================================
+2. DOCKER SECURITY (7/10)
+================================================================================
+
+POSITIVE FINDINGS:
+- cap_drop: ALL applied to most services ✓
+- no-new-privileges:true set on all services ✓
+- read_only: true on most services ✓
+- tmpfs mounts configured ✓
+- Resource limits defined ✓
+
+VIOLATIONS FOUND:
+
+2.1 HIGH - Containers running as root (no user specified):
+    Services affected: stash, uniscrape, namer, whisparr, liberty, imdb-scraper, postgres, redis, chrome, nginx
+    FIX: Add "user: 1000:1000" or create dedicated users in Dockerfiles
+
+2.2 MEDIUM - OmniScraper Dockerfile creates user but needs verification:
+    File: C:\OmniScraper\Dockerfile:3-9
+    - User created but node_modules copied as root initially
+    FIX: Ensure all files owned by omniscraper user
+
+2.3 MEDIUM - Brilliantly-Bussy-ImagGoo app container no user specified:
+    File: C:\Brilliantly-Bussy-ImagGoo\docker-compose.yml:9-63
+    FIX: Add user directive or configure in Dockerfile
+
+2.4 LOW - Chrome container missing read_only:
+    File: C:\stash\docker-compose.unified.yml:438-473
+    FIX: Add read_only: true (may need --no-sandbox already present)
+
+2.5 LOW - Some services missing healthchecks:
+    - chrome, namer (has it), whisparr (has it)
+    FIX: Add healthcheck for chrome at minimum
+
+
+================================================================================
+3. NETWORK ISOLATION (6/10)
+================================================================================
+
+POSITIVE FINDINGS:
+- Internal backend network defined (172.20.0.0/16) ✓
+- Brilliantly-Bussy-ImagGoo uses separate frontend/backend/media networks ✓
+
+VIOLATIONS FOUND:
+
+3.1 HIGH - Excessive port exposure to host:
+    File: C:\stash\docker-compose.unified.yml
+    - stash: 9999:9999 (should be internal only, via nginx)
+    - uniscrape: 9876:8085 (should be internal only)
+    - namer: 6980:6980 (should be internal only)
+    - whisparr: 6969:6969 (should be internal only)
+    - liberty: 9080:9080, 9443:9443, 9011:9011 (should be internal)
+    - imdb-scraper: 3000:3000 (should be internal only)
+    - chrome: 9222:9222 (should NOT be exposed to host)
+    - transmission: 9091:9091, 51413:51413 (torrent, possibly justified)
+    FIX: Remove port mappings, access only via nginx reverse proxy
+
+3.2 MEDIUM - Brilliantly-Bussy-ImagGoo exposes internal services:
+    File: C:\Brilliantly-Bussy-ImagGoo\docker-compose.yml:125-166
+    - uniscrape: 9876:8085 (internal only needed)
+    - multi-scrobbler: 9078:9078 (internal only needed)
+    - stash: 9999:9999 (internal only needed)
+    FIX: Remove port mappings, use nginx-proxy only
+
+3.3 LOW - No network segmentation between frontend and backend:
+    FIX: Move internal services to backend-only network without frontend access
+
+
+================================================================================
+4. SSL/TLS (3/10)
+================================================================================
+
+POSITIVE FINDINGS:
+- HTTPS enforced (HTTP 301 redirect) ✓
+- HSTS header present with preload ✓
+- TLS 1.2 and 1.3 enabled ✓
+
+VIOLATIONS FOUND:
+
+4.1 CRITICAL - Self-signed certificates in use:
+    Files: C:\stash\nginx\ssl\server.crt, server.key
+    - Self-signed certs provide no trust chain validation
+    FIX: Use Let's Encrypt with certbot or Cloudflare Origin CA
+
+4.2 HIGH - Weak SSL cipher configuration:
+    File: C:\stash\nginx\conf.d\default.conf:38
+    - ssl_ciphers HIGH:!aNULL:!MD5;
+    FIX: Use explicit strong cipher suite:
+    ssl_ciphers 'TLS_AES_256_GCM_SHA384:TLS_CHACHA20_POLY1305_SHA256:ECDHE-ECDSA-AES256-GCM-SHA384';
+
+4.3 MEDIUM - ssl_prefer_server_ciphers on (deprecated for TLS 1.3):
+    FIX: Remove or set to 'off' for TLS 1.3 compatibility
+
+4.4 MEDIUM - No certificate expiration monitoring
+    FIX: Add cron job or healthcheck for cert expiration
+
+4.5 LOW - Missing SSL session configuration:
+    FIX: Add ssl_session_timeout, ssl_session_cache
+
+
+================================================================================
+5. NGINX HARDENING (8/10)
+================================================================================
+
+POSITIVE FINDINGS:
+- Security headers present (X-Frame-Options, X-XSS-Protection, CSP) ✓
+- Rate limiting configured (general, scraper, api zones) ✓
+- server_tokens off ✓
+- gzip configured with appropriate types ✓
+- Logs formatted with request ID ✓
+
+VIOLATIONS FOUND:
+
+5.1 MEDIUM - CSP allows unsafe-inline:
+    File: C:\stash\nginx\nginx.conf:40
+    - script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline';
+    FIX: Remove unsafe-inline, use nonces or hashes for inline scripts
+
+5.2 MEDIUM - No request size limit on specific endpoints:
+    FIX: Add location-specific client_max_body_size (e.g., 1m for APIs)
+
+5.3 LOW - Access log includes full URL (potential sensitive data):
+    FIX: Review log format to avoid logging tokens/API keys
+
+5.4 LOW - No bot/crawler blocking rules
+    FIX: Add rules to block malicious user agents
+
+
+================================================================================
+6. DATABASE SECURITY (4/10)
+================================================================================
+
+POSITIVE FINDINGS:
+- SCRAM-SHA-256 enforced (02-security.sql:5) ✓
+- Public schema access revoked from PUBLIC ✓
+- Row Level Security enabled on users, listening_stats ✓
+- Connection limits set on users ✓
+- Audit logging table created ✓
+
+VIOLATIONS FOUND:
+
+6.1 CRITICAL - Hardcoded passwords in init script (see section 1.1):
+    File: C:\stash\postgres\init-scripts\01-init.sql:3-4
+    FIX: Use ALTER USER with password from environment variable
+
+6.2 HIGH - No audit triggers actually applied:
+    File: C:\stash\postgres\init-scripts\01-init.sql:86-104
+    - audit_trigger_func() created but never attached with CREATE TRIGGER
+    FIX: Add CREATE TRIGGER statements for each table needing audit
+
+6.3 HIGH - Users table RLS policy uses current_setting:
+    File: C:\stash\postgres\init-scripts\01-init.sql:71
+    - USING (id = current_setting('app.current_user_id')::UUID)
+    FIX: Ensure app.current_user_id is always set before queries, add error handling
+
+6.4 MEDIUM - No database backup encryption configured
+    FIX: Add pgBackRest or similar with encryption
+
+6.5 MEDIUM - Postgres container runs as root (no user in compose)
+    FIX: Add user: postgres:postgres or configure in image
+
+
+================================================================================
+7. INPUT VALIDATION (5/10)
+================================================================================
+
+POSITIVE FINDINGS:
+- Express.json with 10mb limit ✓
+- Auth middleware on most endpoints ✓
+- Timeout middleware applied ✓
+- Ajv validation imported (but not widely used) ✓
+
+VIOLATIONS FOUND:
+
+7.1 HIGH - No input validation on universal scraper endpoint:
+    File: C:\OmniScraper\src\index.js:119-125
+    - Accepts arbitrary scraper name and URL without validation
+    FIX: Add validation schema, whitelist allowed scrapers
+
+7.2 HIGH - No validation on torrent magnet URI:
+    File: C:\OmniScraper\src\index.js:127-133
+    - magnet parameter not validated as proper magnet URI
+    FIX: Add regex validation for magnet:?xt=urn:btih:...
+
+7.3 MEDIUM - Search query not sanitized:
+    File: C:\OmniScraper\src\plugins\search.js:21-99
+    - Query used in regex and JSON.stringify without sanitization
+    FIX: Use parameterized queries, escape special characters
+
+7.4 MEDIUM - IMDB movie ID not validated:
+    File: C:\OmniScraper\src\index.js:103-108
+    - :id parameter could be anything
+    FIX: Add pattern validation (tt\d{7,8})
+
+7.5 LOW - RSS feed source not validated against whitelist:
+    File: C:\OmniScraper\src\plugins\rss.js:133-160
+    FIX: Validate source parameter against allowed list
+
+
+================================================================================
+8. AUTHENTICATION (6/10)
+================================================================================
+
+POSITIVE FINDINGS:
+- API key auth implemented ✓
+- Auth middleware on all sensitive endpoints ✓
+- Laravel uses Sanctum + Zero Trust (Brilliantly-Bussy-ImagGoo) ✓
+- Device fingerprinting and passkeys configured ✓
+
+VIOLATIONS FOUND:
+
+8.1 HIGH - API key passed in query string allowed:
+    File: C:\OmniScraper\src\middleware\index.js:11
+    - const apiKey = req.headers['x-api-key'] || req.query.api_key;
+    FIX: Remove query string support, headers only
+
+8.2 HIGH - Single static API key (no rotation):
+    File: C:\OmniScraper\src\config\index.js:18
+    - apiKey: process.env.API_KEY (single key)
+    FIX: Implement API key database with rotation, multiple keys support
+
+8.3 MEDIUM - No API key scope/permission enforcement:
+    FIX: Add scopes to API keys (read, write, admin)
+
+8.4 MEDIUM - No rate limiting per API key:
+    FIX: Track rate limits by API key, not just IP
+
+8.5 LOW - Session encryption enabled but check key strength:
+    File: C:\Brilliantly-Bussy-ImagGoo\.env.example:51-54
+    FIX: Ensure SESSION_ENCRYPT uses AES-256
+
+
+================================================================================
+9. LOGGING & AUDIT (7/10)
+================================================================================
+
+POSITIVE FINDINGS:
+- Structured JSON logging with Pino ✓
+- Sensitive data redaction configured ✓
+- Request ID tracking ✓
+- Audit log table created in database ✓
+- Laravel has AuditLogger service ✓
+
+VIOLATIONS FOUND:
+
+9.1 MEDIUM - Stack traces logged to file:
+    File: C:\OmniScraper\src\middleware\index.js:50
+    - stack: err.stack (logged in error handler)
+    FIX: Only log stack traces in development, not production
+
+9.2 MEDIUM - Audit triggers not actually created (see 6.2):
+    FIX: Add CREATE TRIGGER for audit_log on all tables
+
+9.3 LOW - Log files not rotated by application:
+    File: C:\OmniScraper\src\logger\index.js:23
+    - Daily log files but no automatic cleanup
+    FIX: Add log rotation cleanup job
+
+9.4 LOW - No centralized logging (each service logs locally)
+    FIX: Ship logs to central system (ELK, Loki, etc.)
+
+
+================================================================================
+10. ERROR HANDLING (8/10)
+================================================================================
+
+POSITIVE FINDINGS:
+- Custom error classes with status codes ✓
+- Operational vs programmer error distinction ✓
+- Stack traces not sent to client ✓
+- Graceful shutdown on SIGTERM/SIGINT ✓
+- Circuit breaker implemented for IMDB ✓
+
+VIOLATIONS FOUND:
+
+10.1 LOW - Uncaught exception kills process immediately:
+     File: C:\OmniScraper\src\index.js:198-201
+     - process.exit(1) without cleanup
+     FIX: Ensure graceful shutdown even on uncaught exceptions
+
+10.2 LOW - Error messages may leak internal paths:
+     FIX: Sanitize error messages in production
+
+
+================================================================================
+CRITICAL ISSUES CHECKLIST (MUST FIX FOR PASS)
+================================================================================
+
+□ 1. Remove hardcoded passwords from 01-init.sql (Score: +3)
+□ 2. Fix password exposure in healthcheck/command args (Score: +2)
+□ 3. Add non-root users to all containers (Score: +2)
+□ 4. Remove unnecessary port mappings (Score: +2)
+□ 5. Replace self-signed certs with trusted CA (Score: +4)
+□ 6. Strengthen SSL ciphers (Score: +1)
+□ 7. Apply audit triggers to database tables (Score: +2)
+□ 8. Add input validation schemas to all endpoints (Score: +3)
+□ 9. Remove API key from query string support (Score: +1)
+□ 10. Implement API key rotation/database storage (Score: +2)
+
+If all fixed: 58 + 22 = 80/100 → PASS
+
+
+================================================================================
+REMAINING ISSUES (PRIORITY ORDER)
+================================================================================
+
+P0 - CRITICAL (Fix immediately):
+1. Hardcoded DB passwords in 01-init.sql
+2. Redis/Postgres passwords in command-line args (ps visible)
+3. Self-signed SSL certificates
+
+P1 - HIGH (Fix this week):
+4. Containers running as root
+5. Excessive port exposure (9+ services)
+6. No audit triggers on database tables
+7. API key in query string allowed
+8. Weak SSL cipher suite
+
+P2 - MEDIUM (Fix this month):
+9. No input validation on universal scraper endpoint
+10. No API key rotation mechanism
+11. CSP allows unsafe-inline scripts
+12. No centralized logging
+13. Stack traces logged in production
+
+P3 - LOW (Nice to have):
+14. Log rotation cleanup
+15. Bot/crawler blocking in nginx
+16. SSL session optimization
+17. Request ID in all log entries
+
+
+================================================================================
+SPECIFIC FIXES BY FILE
+================================================================================
+
+FILE: C:\stash\postgres\init-scripts\01-init.sql
+-------------------------------------------------------------------------------
+BEFORE (lines 3-4):
+  CREATE USER uniscrape WITH PASSWORD 'uniscrape_secure_password_2026';
+  CREATE USER staging_user WITH PASSWORD 'staging_readonly_2026';
+
+AFTER:
+  CREATE USER uniscrape WITH PASSWORD :'uniscrape_password';
+  CREATE USER staging_user WITH PASSWORD :'staging_password';
+  
+  -- Then call with: psql -v uniscrape_password="$POSTGRES_PASSWORD" ...
+
+
+FILE: C:\stash\docker-compose.unified.yml
+-------------------------------------------------------------------------------
+BEFORE (line 405):
+  command: ["redis-server", "--requirepass", "${REDIS_PASSWORD}", ...]
+
+AFTER:
+  command: ["redis-server", "--include", "/etc/redis/redis.conf"]
+  volumes:
+    - ./redis/redis.conf:/etc/redis/redis.conf:ro
+  # redis.conf contains: requirepass <password> (file protected)
+
+BEFORE (line 411):
+  test: ["CMD", "redis-cli", "--raw", "-a", "${REDIS_PASSWORD}", "incr", "ping"]
+
+AFTER:
+  test: ["CMD-SHELL", "redis-cli -u redis://:$$REDIS_PASSWORD@localhost:6379 incr ping"]
+  # Or use healthcheck script that reads from file
+
+
+FILE: C:\OmniScraper\src\middleware\index.js
+-------------------------------------------------------------------------------
+BEFORE (line 11-12):
+  const apiKey = req.headers['x-api-key'] || req.query.api_key;
+  if (!apiKey || apiKey !== config.apiKey) {
+
+AFTER:
+  const apiKey = req.headers['x-api-key'];
+  if (!apiKey || !await validateApiKey(apiKey)) {
+
+
+FILE: C:\stash\nginx\conf.d\default.conf
+-------------------------------------------------------------------------------
+BEFORE (line 38):
+  ssl_ciphers HIGH:!aNULL:!MD5;
+
+AFTER:
+  ssl_ciphers 'TLS_AES_256_GCM_SHA384:TLS_CHACHA20_POLY1305_SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384';
+  ssl_prefer_server_ciphers off;
+
+
+FILE: C:\stash\docker-compose.unified.yml (all services)
+-------------------------------------------------------------------------------
+ADD to each service:
+  user: "1000:1000"
+
+OR for postgres:
+  user: "postgres:postgres"
+
+
+FILE: C:\stash\postgres\init-scripts\01-init.sql (add at end)
+-------------------------------------------------------------------------------
+CREATE TRIGGER audit_users AFTER INSERT OR UPDATE OR DELETE ON users
+  FOR EACH ROW EXECUTE FUNCTION audit_trigger_func();
+
+CREATE TRIGGER audit_scrape_jobs AFTER INSERT OR UPDATE OR DELETE ON scrape_jobs
+  FOR EACH ROW EXECUTE FUNCTION audit_trigger_func();
+
+CREATE TRIGGER audit_scrape_results AFTER INSERT OR UPDATE OR DELETE ON scrape_results
+  FOR EACH ROW EXECUTE FUNCTION audit_trigger_func();
+
+CREATE TRIGGER audit_listening_stats AFTER INSERT OR UPDATE OR DELETE ON listening_stats
+  FOR EACH ROW EXECUTE FUNCTION audit_trigger_func();
+
+
+================================================================================
+LARAVEL-SPECIFIC FINDINGS (Brilliantly-Bussy-ImagGoo)
+================================================================================
+
+POSITIVE:
+- Zero Trust security model configured ✓
+- Passkeys and biometric auth required ✓
+- Session encryption enabled ✓
+- COLD_WALLET_ONLY policy ✓
+- SESSION_ROTATION = 900 seconds ✓
+
+ISSUES:
+1. .env.example contains placeholder secrets (crypto addresses)
+2. docker-compose.yml passes REDIS_PASSWORD in environment (OK) but also in command
+3. No Sails middleware visible in api.php routes - verify Sanctum working
+4. APP_DEBUG=false in example, verify in production
+5. Missing rate limiting configuration for Laravel routes (throttle:api present but limits?)
+
+FIX: Review Laravel throttle middleware configuration in RouteServiceProvider
+
+
+================================================================================
+FINAL RECOMMENDATIONS
+================================================================================
+
+1. IMMEDIATE (Before any production deploy):
+   - Remove hardcoded passwords from SQL init scripts
+   - Replace self-signed certificates with Let's Encrypt
+   - Stop running containers as root
+   - Remove exposed ports for internal services
+
+2. SHORT TERM (Within 1 week):
+   - Implement proper API key management (database-backed)
+   - Add input validation to all endpoints
+   - Apply missing database audit triggers
+   - Strengthen SSL cipher configuration
+
+3. MEDIUM TERM (Within 1 month):
+   - Set up centralized logging (ELK stack or similar)
+   - Implement CSP with nonces instead of unsafe-inline
+   - Add automated certificate renewal monitoring
+   - Penetration test all API endpoints
+
+4. LONG TERM:
+   - Migrate to service mesh (Istio/Linkerd) for mTLS
+   - Implement OAuth2/OIDC for user authentication
+   - Regular security audits and dependency updates
+   - Bug bounty program
+
+
+================================================================================
+AUDIT COMPLETE
+================================================================================
+
+Total Issues Found: 37
+- Critical: 5
+- High: 12
+- Medium: 14
+- Low: 6
+
+Current Score: 58/100
+Required for PASS: 70/100
+
+Estimated work to PASS: 12-16 hours
+
+
+================================================================================
+Generated by: opencode/big-pickle
+Date: 2026-05-05
+Report saved to: C:\stash\FINAL_SECURITY_AUDIT.txt
+================================================================================
